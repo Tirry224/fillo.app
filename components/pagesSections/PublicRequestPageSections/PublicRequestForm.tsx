@@ -10,7 +10,7 @@ import {
   Typography,
 } from "@/components";
 
-export function PublicRequestForm() {
+export function PublicRequestForm({ shopSlug }: { shopSlug: string }) {
   const [sent, setSent] = useState(false);
 
   useEffect(() => {
@@ -36,7 +36,7 @@ export function PublicRequestForm() {
         className={`grid gap-4 transition-opacity duration-300 ${
           sent ? "pointer-events-none opacity-40" : "opacity-100"
         }`}
-        action="/diallo-tissus"
+        action={`/${shopSlug}`}
         method="post"
         onSubmit={handleSubmit}
       >

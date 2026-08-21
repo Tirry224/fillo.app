@@ -29,7 +29,7 @@ export function SettingsPage() {
         <SettingsLogout />
       </div>
 
-      <AppNavigation active="settings" />
+      <AppNavigation />
     </Container>
   );
 }

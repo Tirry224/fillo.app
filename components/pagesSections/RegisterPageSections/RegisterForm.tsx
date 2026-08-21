@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+import type { FormEvent } from "react";
 import Link from "next/link";
 import {
   Button,
@@ -8,8 +12,15 @@ import {
 } from "@/components";
 
 export function RegisterForm() {
+  const [submitted, setSubmitted] = useState(false);
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSubmitted(true);
+  }
+
   return (
-    <form className="grid gap-4" action="/register" method="post">
+    <form className="grid gap-4" onSubmit={handleSubmit}>
       <PhoneField
         autoComplete="tel"
         name="phone"
@@ -32,6 +43,11 @@ export function RegisterForm() {
       <Button fullWidth size="lg" type="submit">
         Continuer
       </Button>
+      {submitted ? (
+        <Typography component="p" variant="caption2" className="text-green">
+          Votre boutique est prête à être créée.
+        </Typography>
+      ) : null}
       <Typography component="p" className="text-center" variant="caption2">
         <Link className="font-bold text-navy" href="/login">
           <span>Déjà un compte ? </span>

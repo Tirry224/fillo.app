@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import {
   Avatar,
   Card,
@@ -6,41 +9,30 @@ import {
   Typography,
 } from "@/components";
 import Link from "next/link";
-
-const clients = [
-  {
-    initials: "MB",
-    name: "Mamadou Bah",
-    phone: "+224 621 45 89 12",
-    status: "new" as const,
-    color: "blue" as const,
-  },
-  {
-    initials: "FC",
-    name: "Fatoumata Camara",
-    phone: "+224 624 11 22 33",
-    status: "pending" as const,
-    color: "orange" as const,
-  },
-  {
-    initials: "AD",
-    name: "Aïssatou Diallo",
-    phone: "+224 620 99 88 77",
-    status: "completed" as const,
-    color: "green" as const,
-  },
-];
+import { clients } from "@/lib/mockData";
 
 export function ClientList() {
+  const [search, setSearch] = useState("");
+  const normalizedSearch = search.trim().toLowerCase();
+  const filteredClients = clients.filter(
+    (client) =>
+      client.name.toLowerCase().includes(normalizedSearch) ||
+      client.phone.toLowerCase().includes(normalizedSearch),
+  );
+
   return (
     <div className="grid gap-4">
-      <SearchField placeholder="Rechercher nom ou numéro..." />
+      <SearchField
+        onChange={(event) => setSearch(event.target.value)}
+        placeholder="Rechercher nom ou numéro..."
+        value={search}
+      />
       <div className="grid gap-2">
-        {clients.map((client) => (
+        {filteredClients.map((client) => (
           <Card className="p-3" key={client.phone}>
             <Link
               className="flex items-center gap-3"
-              href={`/clients/${client.initials.toLowerCase()}`}
+              href={`/clients/${client.id}`}
             >
               <Avatar color={client.color} initials={client.initials} />
               <div className="min-w-0 flex-1">
@@ -55,6 +47,11 @@ export function ClientList() {
             </Link>
           </Card>
         ))}
+        {filteredClients.length === 0 ? (
+          <Typography component="p" variant="caption2">
+            Aucun client trouvé.
+          </Typography>
+        ) : null}
       </div>
     </div>
   );

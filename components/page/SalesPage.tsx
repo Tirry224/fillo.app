@@ -9,7 +9,7 @@ export function SalesPage() {
       <SalesHeader />
       <SalesStats />
       <SalesEvolution />
-      <AppNavigation active="sales" />
+      <AppNavigation />
     </Container>
   );
 }

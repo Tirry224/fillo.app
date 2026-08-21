@@ -11,7 +11,7 @@ export function DashboardPage() {
         <SalesSummary />
         <ImmediateRequest />
       </div>
-      <AppNavigation active="dashboard" />
+      <AppNavigation />
     </Container>
   );
 }

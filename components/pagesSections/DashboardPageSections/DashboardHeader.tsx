@@ -1,8 +1,38 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Typography } from "@/components";
-import { Bell, Share2 } from "lucide-react";
+import { Bell, Check, Share2 } from "lucide-react";
+
+const publicUrl = "https://fillo.app/diallo-tissus";
 
 export function DashboardHeader() {
+  const [copyState, setCopyState] = useState<"idle" | "copied" | "error">(
+    "idle",
+  );
+
+  useEffect(() => {
+    if (copyState === "idle") {
+      return;
+    }
+
+    const resetTimer = window.setTimeout(() => {
+      setCopyState("idle");
+    }, 2500);
+
+    return () => window.clearTimeout(resetTimer);
+  }, [copyState]);
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(publicUrl);
+      setCopyState("copied");
+    } catch {
+      setCopyState("error");
+    }
+  }
+
   return (
     <header className="-mx-4 -mt-6 grid gap-5 rounded-b-[var(--radius-card)] bg-navy px-4 pb-5 pt-6 text-white sm:-mx-6 sm:-mt-8 sm:px-6">
       <div className="flex items-start justify-between">
@@ -55,12 +85,29 @@ export function DashboardHeader() {
             </Typography>
           </Link>
           <button
+            aria-describedby="copy-status"
+            aria-label="Copier le lien client"
             className="shrink-0 rounded-[var(--radius-control)] bg-orange px-3 py-2 text-xs font-bold text-navy"
+            onClick={handleCopy}
             type="button"
           >
-            Copier
+            {copyState === "copied" ? (
+              <span className="inline-flex items-center gap-1">
+                <Check aria-hidden="true" size={14} />
+                Copié
+              </span>
+            ) : (
+              "Copier"
+            )}
           </button>
         </div>
+        <p aria-live="polite" className="sr-only" id="copy-status">
+          {copyState === "copied"
+            ? "Lien client copié."
+            : copyState === "error"
+              ? "Impossible de copier le lien client."
+              : ""}
+        </p>
       </div>
     </header>
   );

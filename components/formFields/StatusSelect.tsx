@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { SelectHTMLAttributes } from "react";
 import { Check, ChevronDown } from "lucide-react";
 
@@ -50,14 +50,33 @@ export function StatusSelect({
   const initialValue = String(value ?? defaultValue ?? options[0]?.value ?? "");
   const [selectedValue, setSelectedValue] = useState(initialValue);
   const [open, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(() =>
+    Math.max(
+      0,
+      options.findIndex((option) => option.value === initialValue),
+    ),
+  );
+  const containerRef = useRef<HTMLDivElement>(null);
   const errorId = error ? `${id}-error` : undefined;
   const currentValue = value === undefined ? selectedValue : String(value);
   const selectedOption =
     options.find((option) => option.value === currentValue) ?? options[0];
 
+  useEffect(() => {
+    function handleOutsideClick(event: MouseEvent) {
+      if (!containerRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
+
   function selectOption(option: StatusOption) {
     setSelectedValue(option.value);
     setOpen(false);
+    setActiveIndex(options.findIndex((item) => item.value === option.value));
     onChange?.(option.value);
   }
 
@@ -66,7 +85,7 @@ export function StatusSelect({
       <label className="text-xs font-bold text-text" htmlFor={id}>
         {label}
       </label>
-      <div className="relative">
+      <div className="relative" ref={containerRef}>
         <input
           form={form}
           name={name}
@@ -82,7 +101,43 @@ export function StatusSelect({
           className={`flex min-h-11 w-full items-center justify-between gap-3 rounded-[var(--radius-control)] border bg-surface px-3 text-left text-sm text-text outline-none transition-colors focus:border-blue disabled:cursor-not-allowed disabled:opacity-50 ${error ? "border-[#c53f3f]" : "border-border"} ${className}`}
           disabled={disabled}
           id={id}
-          onClick={() => setOpen((current) => !current)}
+          onClick={() => {
+            setActiveIndex(
+              Math.max(
+                0,
+                options.findIndex((option) => option.value === currentValue),
+              ),
+            );
+            setOpen((current) => !current);
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              setOpen(false);
+              return;
+            }
+
+            if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+              event.preventDefault();
+              setOpen(true);
+              if (options.length === 0) {
+                return;
+              }
+              setActiveIndex((index) =>
+                event.key === "ArrowDown"
+                  ? (index + 1) % options.length
+                  : (index - 1 + options.length) % options.length,
+              );
+              return;
+            }
+
+            if ((event.key === "Enter" || event.key === " ") && open) {
+              event.preventDefault();
+              const option = options[activeIndex];
+              if (option) {
+                selectOption(option);
+              }
+            }
+          }}
           type="button"
         >
           <span className="flex items-center gap-2">
@@ -108,11 +163,13 @@ export function StatusSelect({
           >
             {options.map((option) => {
               const isSelected = option.value === currentValue;
+              const optionIndex = options.indexOf(option);
 
               return (
                 <button
                   aria-selected={isSelected}
-                  className="flex min-h-11 w-full items-center justify-between border-b border-border px-3 text-left text-sm text-text last:border-b-0 hover:bg-surface-warm"
+                  className={`flex min-h-11 w-full items-center justify-between border-b border-border px-3 text-left text-sm text-text last:border-b-0 hover:bg-surface-warm ${optionIndex === activeIndex ? "bg-surface-warm" : ""}`}
+                  id={`${id}-option-${optionIndex}`}
                   key={option.value}
                   onClick={() => selectOption(option)}
                   role="option"

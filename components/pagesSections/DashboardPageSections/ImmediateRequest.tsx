@@ -1,5 +1,6 @@
 import { Card, StatusBadge, Typography } from "@/components";
 import Link from "next/link";
+import { requests } from "@/lib/mockData";
 
 export function ImmediateRequest() {
   return (
@@ -9,27 +10,26 @@ export function ImmediateRequest() {
           À traiter immédiatement
         </Typography>
         <span className="flex size-5 items-center justify-center rounded bg-[#c53f3f] text-[11px] font-bold text-white">
-          2
+          {requests.length}
         </span>
       </div>
-      <Link href="/clients/mb">
-        <Card className="grid gap-3 p-3 transition-colors hover:bg-surface-warm">
-          <div className="flex items-start justify-between gap-3">
-            <div className="grid gap-1">
-              <Typography component="h3" variant="caption1">
-                Mamadou Bah
-              </Typography>
-              <Typography component="p" variant="caption2">
-                Bazin riche VIP - 2 pièces
-              </Typography>
+      {requests.map((request) => (
+        <Link href={`/clients/${request.clientId}`} key={request.clientId}>
+          <Card className="grid gap-3 p-3 transition-colors hover:bg-surface-warm">
+            <div className="flex items-start justify-between gap-3">
+              <div className="grid gap-1">
+                <Typography component="h3" variant="caption1">
+                  {request.title}
+                </Typography>
+              </div>
+              <StatusBadge status={request.status} />
             </div>
-            <StatusBadge status="new" />
-          </div>
-          <Typography component="p" variant="caption2">
-            Reçu il y a 10 min par WhatsApp
-          </Typography>
-        </Card>
-      </Link>
+            <Typography component="p" variant="caption2">
+              {request.detail}
+            </Typography>
+          </Card>
+        </Link>
+      ))}
     </section>
   );
 }

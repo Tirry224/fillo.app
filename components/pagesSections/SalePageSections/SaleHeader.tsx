@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { ArrowLeft, Trash2 } from "lucide-react";
+import type { Sale } from "@/lib/mockData";
 
-export function SaleHeader() {
+export function SaleHeader({ sale }: { sale: Sale }) {
   return (
     <header className="flex items-center justify-between">
       <Link
@@ -10,7 +11,7 @@ export function SaleHeader() {
         href="/clients"
       >
         <ArrowLeft aria-hidden="true" size={18} />
-        <span className="text-sm font-bold">Vente #FL-892</span>
+        <span className="text-sm font-bold">Vente #{sale.id}</span>
       </Link>
       <button
         aria-label="Supprimer la vente"

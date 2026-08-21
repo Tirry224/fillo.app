@@ -7,7 +7,7 @@ export function ClientsPage() {
     <Container className="gap-8 pb-24">
       <ClientsHeader />
       <ClientList />
-      <AppNavigation active="clients" />
+      <AppNavigation />
     </Container>
   );
 }

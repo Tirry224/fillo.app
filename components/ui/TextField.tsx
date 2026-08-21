@@ -13,7 +13,15 @@ export function TextField({
   className = "",
   ...props
 }: TextFieldProps) {
-  const fieldId = id ?? label.toLowerCase().replaceAll(" ", "-");
+  const fieldId =
+    id ??
+    (label
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "") ||
+      "text-field");
   const errorId = error ? `${fieldId}-error` : undefined;
 
   return (
