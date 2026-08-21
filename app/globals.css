@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+:root {
+  --color-text: #172033;
+  --color-ink-muted: #6f7075;
+  --color-navy: #273452;
+  --color-surface: #ffffff;
+  --color-surface-warm: #fffaf2;
+  --color-border: #e7dfd3;
+  --color-border-strong: #cfc5b7;
+  --color-orange: #f3aa32;
+  --color-coral: #e96d52;
+  --color-green: #2f8537;
+  --color-blue: #2186d4;
+  --color-grey: #a7a49d;
+
+  --font-display: Georgia, "Times New Roman", serif;
+  --font-body: "Trebuchet MS", Arial, sans-serif;
+
+  --radius-control: 6px;
+  --radius-card: 8px;
+  --shadow-card: 0 1px 3px rgb(39 52 82 / 8%);
+  --shadow-focus: 0 0 0 3px rgb(33 134 212 / 20%);
+
+  /* BrandMark, DashboardHeader and ActiveNavItem */
+  --brand: var(--color-navy);
+  --nav-active: var(--color-navy);
+
+  /* PrimaryButton, SubmitButton and CopyButton */
+  --btn-primary-bg: var(--color-navy);
+  --btn-primary-fg: var(--color-surface);
+  --btn-accent-bg: var(--color-orange);
+  --btn-accent-fg: var(--color-navy);
+  --btn-success-bg: var(--color-green);
+  --btn-success-fg: var(--color-surface);
+
+  /* PageHeading, ClientListItem and SaleSummary */
+  --heading: var(--color-text);
+  --muted: var(--color-ink-muted);
+
+  /* PhoneField, TextField, PasswordField and SearchField */
+  --field-bg: var(--color-surface);
+  --field-border: var(--color-border);
+  --field-focus-border: var(--color-blue);
+
+  /* StatusBadge and StatusSelect */
+  --status-new: var(--color-blue);
+  --status-pending: var(--color-orange);
+  --status-done: var(--color-green);
+  --status-lost: var(--color-grey);
+
+  /* SaleStatusBanner */
+  --sale-start: var(--color-orange);
+  --sale-end: var(--color-coral);
+
+  /* BottomNavigation */
+  --nav-bg: var(--color-surface);
+  --nav-border: var(--color-border);
+}
+
+@theme inline {
+  --color-text: var(--color-text);
+  --color-ink-muted: var(--color-ink-muted);
+  --color-navy: var(--color-navy);
+  --color-surface: var(--color-surface);
+  --color-surface-warm: var(--color-surface-warm);
+  --color-border: var(--color-border);
+  --color-border-strong: var(--color-border-strong);
+  --color-orange: var(--color-orange);
+  --color-coral: var(--color-coral);
+  --color-green: var(--color-green);
+  --color-blue: var(--color-blue);
+  --color-grey: var(--color-grey);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--color-surface);
+}
+
+body {
+  margin: 0;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
