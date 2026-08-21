@@ -47,6 +47,17 @@ const variants: Record<TypographyVariant, string> = {
   caption4: "text-[10px] leading-normal text-ink-muted",
 };
 
+// Styles communs aux composants UI, centralises avec la typographie.
+export const uiStyles = {
+  controlRadius: "rounded-[var(--radius-control)]",
+  cardRadius: "rounded-[var(--radius-card)]",
+  cardRadiusResponsive: "sm:rounded-[var(--radius-card)]",
+  field: "min-h-11 px-3 text-sm",
+  button: "font-bold transition-colors",
+  sectionGap: "gap-8",
+  formGap: "gap-4",
+} as const;
+
 // Props communes : style choisi, balise HTML, contenu et classe exceptionnelle.
 export type TypographyProps = HTMLAttributes<HTMLElement> & {
   variant?: TypographyVariant;

@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes } from "react";
+import { uiStyles } from "./Typography";
 
 const buttonVariants = {
   primary: "bg-navy text-white hover:bg-[#1f2a46]",
@@ -37,7 +38,7 @@ export function Button({
 
   return (
     <button
-      className={`inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${buttonVariants[variant]} ${buttonSizes[size]} ${widthClass} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 ${uiStyles.controlRadius} ${uiStyles.button} disabled:cursor-not-allowed disabled:opacity-50 ${buttonVariants[variant]} ${buttonSizes[size]} ${widthClass} ${className}`}
       type={type}
       {...props}
     />

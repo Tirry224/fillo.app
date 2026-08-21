@@ -31,3 +31,4 @@ export { BottomNavigation } from "./ui/BottomNavigation";
 export type { BottomNavigationProps, NavItem } from "./ui/BottomNavigation";
 export { Typography } from "./ui/Typography";
 export type { TypographyProps, TypographyVariant } from "./ui/Typography";
+export { uiStyles } from "./ui/Typography";

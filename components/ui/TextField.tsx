@@ -1,4 +1,5 @@
 import type { InputHTMLAttributes } from "react";
+import { uiStyles } from "./Typography";
 
 export type TextFieldProps = InputHTMLAttributes<HTMLInputElement> & {
   label: string;
@@ -23,7 +24,7 @@ export function TextField({
       <input
         aria-describedby={errorId}
         aria-invalid={Boolean(error)}
-        className={`min-h-11 rounded-[var(--radius-control)] border border-border bg-surface px-3 text-sm text-text placeholder:text-ink-muted focus:border-blue focus:outline-none ${error ? "border-[#c53f3f]" : ""} ${className}`}
+        className={`${uiStyles.field} ${uiStyles.controlRadius} border border-border bg-surface text-text placeholder:text-ink-muted focus:border-blue focus:outline-none ${error ? "border-[#c53f3f]" : ""} ${className}`}
         id={fieldId}
         {...props}
       />

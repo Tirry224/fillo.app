@@ -1,4 +1,5 @@
 import type { HTMLAttributes } from "react";
+import { uiStyles } from "./Typography";
 
 export type CardProps = HTMLAttributes<HTMLDivElement> & {
   warm?: boolean;
@@ -9,7 +10,7 @@ export function Card({ warm = false, className = "", ...props }: CardProps) {
 
   return (
     <div
-      className={`rounded-[var(--radius-card)] border border-border shadow-[var(--shadow-card)] ${backgroundClass} ${className}`}
+      className={`${uiStyles.cardRadius} border border-border shadow-[var(--shadow-card)] ${backgroundClass} ${className}`}
       {...props}
     />
   );

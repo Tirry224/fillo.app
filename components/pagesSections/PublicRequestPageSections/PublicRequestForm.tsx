@@ -20,7 +20,7 @@ export function PublicRequestForm() {
 
     const resetTimer = window.setTimeout(() => {
       setSent(false);
-    }, 7000);
+    }, 5000);
 
     return () => window.clearTimeout(resetTimer);
   }, [sent]);
