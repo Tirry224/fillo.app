@@ -9,9 +9,10 @@ import {
   Typography,
 } from "@/components";
 import Link from "next/link";
-import { clients } from "@/lib/mockData";
+import { useAppStore } from "@/lib/appStore";
 
 export function ClientList() {
+  const { clients } = useAppStore();
   const [search, setSearch] = useState("");
   const normalizedSearch = search.trim().toLowerCase();
   const filteredClients = clients.filter(

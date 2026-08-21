@@ -1,11 +1,25 @@
-import { Card, Typography } from "@/components";
+"use client";
 
-const metrics = [
-  { label: "En cours", value: "5", color: "text-orange" },
-  { label: "Complétées", value: "18", color: "text-green" },
-];
+import { Card, Typography } from "@/components";
+import { useAppStore } from "@/lib/appStore";
 
 export function SalesSummary() {
+  const { sales } = useAppStore();
+  const metrics = [
+    {
+      label: "En cours",
+      value: sales.filter(
+        (sale) => sale.status === "new" || sale.status === "pending",
+      ).length,
+      color: "text-orange",
+    },
+    {
+      label: "Complétées",
+      value: sales.filter((sale) => sale.status === "completed").length,
+      color: "text-green",
+    },
+  ];
+
   return (
     <section className="grid gap-3">
       <Typography component="h2" variant="h4">

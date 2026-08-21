@@ -1,7 +1,11 @@
+"use client";
+
 import { Typography } from "@/components";
-import { clients } from "@/lib/mockData";
+import { useAppStore } from "@/lib/appStore";
 
 export function ClientsHeader() {
+  const { clients } = useAppStore();
+
   return (
     <header>
       <Typography component="h1" variant="h3">

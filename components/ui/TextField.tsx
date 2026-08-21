@@ -32,7 +32,7 @@ export function TextField({
       <input
         aria-describedby={errorId}
         aria-invalid={Boolean(error)}
-        className={`${uiStyles.field} ${uiStyles.controlRadius} border border-border bg-surface text-text placeholder:text-ink-muted focus:border-blue focus:outline-none ${error ? "border-[#c53f3f]" : ""} ${className}`}
+        className={`${uiStyles.field} ${uiStyles.controlRadius} border border-border bg-surface text-text shadow-sm transition-shadow placeholder:text-ink-muted focus:border-blue focus:outline-none focus:shadow-[var(--shadow-focus)] ${error ? "border-[#c53f3f]" : ""} ${className}`}
         id={fieldId}
         {...props}
       />

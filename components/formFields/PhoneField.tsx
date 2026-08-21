@@ -1,4 +1,6 @@
-import type { InputHTMLAttributes } from "react";
+"use client";
+
+import { useState, type ChangeEvent, type InputHTMLAttributes } from "react";
 
 export type PhoneFieldProps = InputHTMLAttributes<HTMLInputElement> & {
   label?: string;
@@ -12,9 +14,24 @@ export function PhoneField({
   prefix = "GN +224",
   error,
   className = "",
+  onChange,
+  value,
+  defaultValue,
   ...props
 }: PhoneFieldProps) {
+  const [formattedValue, setFormattedValue] = useState(() =>
+    formatPhone(String(value ?? defaultValue ?? "")),
+  );
   const errorId = error ? `${id}-error` : undefined;
+  const displayedValue =
+    value === undefined ? formattedValue : formatPhone(String(value));
+
+  function handleChange(event: ChangeEvent<HTMLInputElement>) {
+    const nextValue = formatPhone(event.target.value);
+    setFormattedValue(nextValue);
+    event.target.value = nextValue;
+    onChange?.(event);
+  }
 
   return (
     <div className="grid gap-1.5">
@@ -22,7 +39,7 @@ export function PhoneField({
         {label}
       </label>
       <div
-        className={`flex min-h-11 overflow-hidden rounded-[var(--radius-control)] border border-border bg-surface focus-within:border-blue ${error ? "border-[#c53f3f]" : ""}`}
+        className={`flex min-h-11 overflow-hidden rounded-[var(--radius-control)] border border-border bg-surface shadow-sm transition-shadow focus-within:border-blue focus-within:shadow-[var(--shadow-focus)] ${error ? "border-[#c53f3f]" : ""}`}
       >
         <span className="flex items-center border-r border-border bg-surface-warm px-3 text-xs font-bold text-text">
           {prefix}
@@ -33,6 +50,8 @@ export function PhoneField({
           className={`min-w-0 flex-1 bg-transparent px-3 text-sm text-text outline-none placeholder:text-ink-muted ${className}`}
           id={id}
           inputMode="tel"
+          onChange={handleChange}
+          value={displayedValue}
           type="tel"
           {...props}
         />
@@ -44,4 +63,9 @@ export function PhoneField({
       ) : null}
     </div>
   );
+}
+
+function formatPhone(value: string) {
+  const digits = value.replace(/\D/g, "").replace(/^224/, "").slice(0, 9);
+  return digits.replace(/(\d{3})(?=\d)/g, "$1 ").trim();
 }

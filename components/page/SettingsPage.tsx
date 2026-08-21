@@ -7,10 +7,10 @@ import { CommerceSettings } from "@/components/pagesSections/SettingsPageSection
 import { NotificationSettings } from "@/components/pagesSections/SettingsPageSections/NotificationSettings";
 import { SettingsFeedback } from "@/components/pagesSections/SettingsPageSections/SettingsFeedback";
 import { SettingsLogout } from "@/components/pagesSections/SettingsPageSections/SettingsLogout";
-import { useState } from "react";
+import { useAppStore } from "@/lib/appStore";
 
 export function SettingsPage() {
-  const [emailNotifications, setEmailNotifications] = useState(true);
+  const { settings, updateSettings } = useAppStore();
 
   return (
     <Container className={`${uiStyles.sectionGap} pb-24`}>
@@ -21,8 +21,10 @@ export function SettingsPage() {
       <div className="space-y-8">
         <CommerceSettings />
         <NotificationSettings
-          enabled={emailNotifications}
-          onToggle={() => setEmailNotifications((enabled) => !enabled)}
+          enabled={settings.emailNotifications}
+          onToggle={() =>
+            updateSettings({ emailNotifications: !settings.emailNotifications })
+          }
         />
         <AccountSettings />
         <SettingsFeedback />

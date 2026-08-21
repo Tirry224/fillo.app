@@ -20,7 +20,11 @@ export function ClientProfile({ client }: { client: Client }) {
           {client.phone}
         </Typography>
       </div>
-      <Link className="w-full" href={`https://wa.me/${whatsappNumber}`}>
+      <Link
+        className="w-full"
+        href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`Bonjour ${client.name}, je reviens vers vous concernant votre demande.`)}`}
+        target="_blank"
+      >
         <Button fullWidth variant="success">
           Discuter sur WhatsApp
         </Button>

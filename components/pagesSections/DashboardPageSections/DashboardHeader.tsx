@@ -3,14 +3,15 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Typography } from "@/components";
-import { Bell, Check, Share2 } from "lucide-react";
-
-const publicUrl = "https://fillo.app/diallo-tissus";
+import { Bell, BellOff, Check } from "lucide-react";
+import { useAppStore } from "@/lib/appStore";
 
 export function DashboardHeader() {
   const [copyState, setCopyState] = useState<"idle" | "copied" | "error">(
     "idle",
   );
+  const { shop, settings, updateSettings } = useAppStore();
+  const publicUrl = `https://fillo.app/${shop.slug}`;
 
   useEffect(() => {
     if (copyState === "idle") {
@@ -38,7 +39,7 @@ export function DashboardHeader() {
       <div className="flex items-start justify-between">
         <div className="grid gap-1">
           <Typography component="h1" variant="h4" className="text-white">
-            Boutique Diallo
+            {shop.name}
           </Typography>
           <Typography
             component="p"
@@ -50,18 +51,24 @@ export function DashboardHeader() {
         </div>
         <div className="flex gap-2" aria-label="Actions du tableau de bord">
           <button
-            aria-label="Notifications"
+            aria-label={
+              settings.emailNotifications
+                ? "Désactiver les notifications"
+                : "Activer les notifications"
+            }
             className="flex size-9 items-center justify-center rounded-[var(--radius-control)] bg-white/10 text-sm"
+            onClick={() =>
+              updateSettings({
+                emailNotifications: !settings.emailNotifications,
+              })
+            }
             type="button"
           >
-            <Bell aria-hidden="true" size={17} />
-          </button>
-          <button
-            aria-label="Partager le lien client"
-            className="flex size-9 items-center justify-center rounded-[var(--radius-control)] bg-white/10 text-sm"
-            type="button"
-          >
-            <Share2 aria-hidden="true" size={17} />
+            {settings.emailNotifications ? (
+              <Bell aria-hidden="true" size={17} />
+            ) : (
+              <BellOff aria-hidden="true" size={17} />
+            )}
           </button>
         </div>
       </div>
@@ -74,14 +81,14 @@ export function DashboardHeader() {
           <Link
             aria-label="Ouvrir le formulaire public de la boutique"
             className="min-w-0 truncate"
-            href="/diallo-tissus"
+            href={`/${shop.slug}`}
           >
             <Typography
               component="span"
               variant="caption1"
               className="text-white underline"
             >
-              fillo.app/diallo-tissus
+              fillo.app/{shop.slug}
             </Typography>
           </Link>
           <button

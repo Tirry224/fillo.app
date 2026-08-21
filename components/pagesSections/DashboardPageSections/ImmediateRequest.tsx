@@ -1,8 +1,15 @@
+"use client";
+
 import { Card, StatusBadge, Typography } from "@/components";
 import Link from "next/link";
-import { requests } from "@/lib/mockData";
+import { useAppStore } from "@/lib/appStore";
 
 export function ImmediateRequest() {
+  const { requests } = useAppStore();
+  const pendingRequests = requests.filter(
+    (request) => request.status !== "completed",
+  );
+
   return (
     <section className="grid gap-3">
       <div className="flex items-center gap-2">
@@ -10,10 +17,10 @@ export function ImmediateRequest() {
           À traiter immédiatement
         </Typography>
         <span className="flex size-5 items-center justify-center rounded bg-[#c53f3f] text-[11px] font-bold text-white">
-          {requests.length}
+          {pendingRequests.length}
         </span>
       </div>
-      {requests.map((request) => (
+      {pendingRequests.map((request) => (
         <Link href={`/clients/${request.clientId}`} key={request.clientId}>
           <Card className="grid gap-3 p-3 transition-colors hover:bg-surface-warm">
             <div className="flex items-start justify-between gap-3">

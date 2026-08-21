@@ -15,7 +15,7 @@ export function NotificationSettings({
   return (
     <SettingsGroup title="Notifications">
       <SettingRow
-        detail="diallo.tissus@gmail.com"
+        detail="Aucune adresse configurée"
         icon={<Mail size={27} strokeWidth={1.8} />}
         label="Email à chaque nouvelle demande"
         trailing={

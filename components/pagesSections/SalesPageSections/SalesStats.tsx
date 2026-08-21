@@ -1,21 +1,25 @@
-import { Card, Typography } from "@/components";
+"use client";
 
-const stats = [
-  {
-    label: "Ventes réussies",
-    value: "48",
-    detail: "+12% ce mois",
-    valueClass: "text-green",
-  },
-  {
-    label: "Ventes perdues",
-    value: "7",
-    detail: "-3% ce mois",
-    valueClass: "text-[#c53f3f]",
-  },
-];
+import { Card, Typography } from "@/components";
+import { useAppStore } from "@/lib/appStore";
 
 export function SalesStats() {
+  const { sales } = useAppStore();
+  const stats = [
+    {
+      label: "Ventes réussies",
+      value: sales.filter((sale) => sale.status === "completed").length,
+      detail: "",
+      valueClass: "text-green",
+    },
+    {
+      label: "Ventes perdues",
+      value: sales.filter((sale) => sale.status === "lost").length,
+      detail: "",
+      valueClass: "text-[#c53f3f]",
+    },
+  ];
+
   return (
     <section className="grid grid-cols-2 gap-3" aria-label="Résumé des ventes">
       {stats.map((stat) => (

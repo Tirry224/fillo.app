@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Button,
   PasswordField,
@@ -10,13 +11,23 @@ import {
   TextField,
   Typography,
 } from "@/components";
+import { useAppStore } from "@/lib/appStore";
 
 export function RegisterForm() {
   const [submitted, setSubmitted] = useState(false);
+  const router = useRouter();
+  const { register } = useAppStore();
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    register(
+      String(formData.get("phone") ?? ""),
+      String(formData.get("shopName") ?? ""),
+      String(formData.get("password") ?? ""),
+    );
     setSubmitted(true);
+    router.push("/dashboard");
   }
 
   return (
@@ -31,7 +42,7 @@ export function RegisterForm() {
         autoComplete="organization"
         label="Nom de la boutique"
         name="shopName"
-        placeholder="Ex. Boutique Diallo Tissus"
+        placeholder="Ex. Ma boutique de tissus"
         required
       />
       <PasswordField

@@ -9,9 +9,12 @@ import {
   TextField,
   Typography,
 } from "@/components";
+import { useAppStore } from "@/lib/appStore";
 
 export function PublicRequestForm({ shopSlug }: { shopSlug: string }) {
   const [sent, setSent] = useState(false);
+  const [formVersion, setFormVersion] = useState(0);
+  const { addRequest } = useAppStore();
 
   useEffect(() => {
     if (!sent) {
@@ -27,6 +30,14 @@ export function PublicRequestForm({ shopSlug }: { shopSlug: string }) {
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    addRequest({
+      name: String(formData.get("name") ?? ""),
+      phone: String(formData.get("phone") ?? ""),
+      request: String(formData.get("request") ?? ""),
+    });
+    event.currentTarget.reset();
+    setFormVersion((version) => version + 1);
     setSent(true);
   }
 
@@ -37,6 +48,7 @@ export function PublicRequestForm({ shopSlug }: { shopSlug: string }) {
           sent ? "pointer-events-none opacity-40" : "opacity-100"
         }`}
         action={`/${shopSlug}`}
+        key={formVersion}
         method="post"
         onSubmit={handleSubmit}
       >

@@ -1,9 +1,24 @@
+"use client";
+
 import { Container } from "@/components";
 import { SaleHeader } from "@/components/pagesSections/SalePageSections/SaleHeader";
 import { SaleSummary } from "@/components/pagesSections/SalePageSections/SaleSummary";
-import type { Sale } from "@/lib/mockData";
+import { useAppStore } from "@/lib/appStore";
 
-export function SalePage({ sale }: { sale: Sale }) {
+export function SalePage({ saleId }: { saleId: string }) {
+  const { sales } = useAppStore();
+  const sale = sales.find(
+    (item) => item.id.toLowerCase() === saleId.toLowerCase(),
+  );
+
+  if (!sale) {
+    return (
+      <Container className="gap-8">
+        <p className="text-sm text-ink-muted">Cette vente est introuvable.</p>
+      </Container>
+    );
+  }
+
   return (
     <Container className="gap-8">
       <SaleHeader sale={sale} />

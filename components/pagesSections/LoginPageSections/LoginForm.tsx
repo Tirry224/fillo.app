@@ -3,14 +3,27 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button, PasswordField, PhoneField, Typography } from "@/components";
+import { useAppStore } from "@/lib/appStore";
 
 export function LoginForm() {
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState(false);
+  const router = useRouter();
+  const { login } = useAppStore();
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const authenticated = login(
+      String(formData.get("phone") ?? ""),
+      String(formData.get("password") ?? ""),
+    );
+    setError(!authenticated);
+    if (!authenticated) return;
     setSubmitted(true);
+    router.push("/dashboard");
   }
 
   return (
@@ -33,6 +46,11 @@ export function LoginForm() {
       {submitted ? (
         <Typography component="p" variant="caption2" className="text-green">
           Connexion prête à être traitée.
+        </Typography>
+      ) : null}
+      {error ? (
+        <Typography component="p" variant="caption2" className="text-[#b33434]">
+          Téléphone ou mot de passe incorrect.
         </Typography>
       ) : null}
       <Typography component="p" className="text-center" variant="caption2">
