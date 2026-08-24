@@ -19,6 +19,7 @@ type ClientRequest = {
   detail: string;
   status: ClientStatus;
   message: string;
+  photo?: string;
 };
 
 type Account = {
@@ -45,8 +46,12 @@ type AppStore = {
   register: (phone: string, shopName: string, password: string) => void;
   login: (phone: string, password: string) => boolean;
   logout: () => void;
-  addRequest: (input: { name: string; phone: string; request: string }) => void;
-  updateClientStatus: (clientId: string, status: ClientStatus) => void;
+  addRequest: (input: {
+    name: string;
+    phone: string;
+    request: string;
+    photo?: string;
+  }) => void;
   updateSaleStatus: (saleId: string, status: ClientStatus) => void;
   deleteSale: (saleId: string) => void;
   updateSettings: (updates: Partial<Settings>) => void;
@@ -125,7 +130,12 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     setIsAuthenticated(false);
   }
 
-  function addRequest(input: { name: string; phone: string; request: string }) {
+  function addRequest(input: {
+    name: string;
+    phone: string;
+    request: string;
+    photo?: string;
+  }) {
     const normalizedPhone = normalizePhone(input.phone);
     const existingClient = clientList.find(
       (client) => normalizePhone(client.phone) === normalizedPhone,
@@ -150,56 +160,33 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
         item.id === client.id ? { ...item, status: "new" } : item,
       ),
     );
+    const requestId = `request-${Date.now()}`;
     setRequestList((current) => [
       {
-        id: `request-${Date.now()}`,
+        id: requestId,
         clientId: client.id,
         title: input.request,
         detail: "Reçu à l'instant via le formulaire client",
         status: "new",
         message: input.request,
+        photo: input.photo,
       },
       ...current,
     ]);
-  }
-
-  function updateClientStatus(clientId: string, status: ClientStatus) {
-    setClientList((current) =>
-      current.map((client) =>
-        client.id === clientId ? { ...client, status } : client,
-      ),
-    );
-    setRequestList((current) =>
-      current.map((request) =>
-        request.clientId === clientId ? { ...request, status } : request,
-      ),
-    );
-    if (status === "completed") {
-      const clientRequests = requestList.filter(
-        (request) => request.clientId === clientId,
-      );
-      setSaleList((current) => {
-        const newSales = clientRequests
-          .filter(
-            (request) =>
-              !current.some(
-                (sale) =>
-                  sale.clientId === clientId && sale.product === request.title,
-              ),
-          )
-          .map((request, index) => ({
-            id: `FL-${Date.now()}-${index + 1}`,
-            clientId,
-            clientName:
-              clientList.find((client) => client.id === clientId)?.name ??
-              "Client",
-            product: request.title,
-            message: request.message,
-            status: "completed" as const,
-          }));
-        return [...current, ...newSales];
-      });
-    }
+    setSaleList((current) => [
+      {
+        id: `FL-${Date.now()}`,
+        clientId: client.id,
+        clientName: client.name,
+        requestId,
+        product: input.request,
+        message: input.request,
+        status: "new",
+        photo: input.photo,
+        createdAt: Date.now(),
+      },
+      ...current,
+    ]);
   }
 
   function updateSaleStatus(saleId: string, status: ClientStatus) {
@@ -207,7 +194,17 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       current.map((sale) => (sale.id === saleId ? { ...sale, status } : sale)),
     );
     const sale = saleList.find((item) => item.id === saleId);
-    if (sale) updateClientStatus(sale.clientId, status);
+    if (!sale) return;
+    setRequestList((current) =>
+      current.map((request) =>
+        request.id === sale.requestId ? { ...request, status } : request,
+      ),
+    );
+    setClientList((current) =>
+      current.map((client) =>
+        client.id === sale.clientId ? { ...client, status } : client,
+      ),
+    );
   }
 
   function deleteSale(saleId: string) {
@@ -235,7 +232,6 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         addRequest,
-        updateClientStatus,
         updateSaleStatus,
         deleteSale,
         updateSettings,

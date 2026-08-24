@@ -107,3 +107,13 @@ button {
   outline: none;
   box-shadow: var(--shadow-focus);
 }
+
+/* Neutralise le fond d'auto-remplissage du navigateur qui masque le fond du champ */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--color-surface) inset;
+  box-shadow: 0 0 0 1000px var(--color-surface) inset;
+  -webkit-text-fill-color: var(--color-text);
+  transition: background-color 9999s ease-in-out 0s;
+}

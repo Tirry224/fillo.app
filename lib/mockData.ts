@@ -13,9 +13,12 @@ export type Sale = {
   id: string;
   clientId: string;
   clientName: string;
+  requestId: string;
   product: string;
   message: string;
   status: ClientStatus;
+  photo?: string;
+  createdAt: number;
 };
 
 export type Shop = {

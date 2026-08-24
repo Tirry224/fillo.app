@@ -67,18 +67,16 @@ Respecter l'organisation existante du projet avant de créer de nouveaux dossier
 
 Structure indicative :
 
-- `app/` : routes et pages Next.js
-- `components/` : composants réutilisables
+- `app/(main)/` : routes des pages principales (avec navigation du bas)
+- `app/(secondary)/` : routes des pages secondaires (auth, détails, publiques)
+- `app/components/` : composants réutilisables (ui/ et formFields/)
+- `sections/main/<NomDeLaPage>PageSections/` : sections propres aux pages principales
+- `sections/secondary/<NomDeLaPage>PageSections/` : sections propres aux pages secondaires
 - `lib/` : fonctions utilitaires, configuration et logique partagée
 - `public/` : ressources statiques
 - `types/` : types TypeScript lorsqu'ils sont suffisamment nombreux pour justifier ce dossier
 
-Pour les pages découpées en sections, utiliser la structure suivante :
-
-- `components/page/` : composants représentant une page complète
-- `components/pagesSections/<NomDeLaPage>/` : sections propres à cette page
-
-Chaque page doit avoir son propre sous-dossier dans `components/pagesSections/`. Par exemple, les sections de la home vont dans `components/pagesSections/HomePageSections/`. Ne pas mélanger les sections de plusieurs pages dans un même dossier.
+Chaque page doit avoir son propre sous-dossier de sections. Par exemple, les sections de la home vont dans `sections/secondary/HomePageSections/`. Ne pas mélanger les sections de plusieurs pages dans un même dossier.
 
 Ne pas créer plusieurs dossiers ayant la même responsabilité.
 
