@@ -5,7 +5,6 @@ import {
   sales as initialSales,
   shops as initialShops,
   type Client,
-  type ClientStatus,
   type Sale,
   type Shop,
 } from "@/lib/mockData";
@@ -15,7 +14,6 @@ type DemoRequest = {
   clientId: string;
   title: string;
   detail: string;
-  status: ClientStatus;
 };
 
 type DemoState = {

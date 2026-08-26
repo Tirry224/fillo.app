@@ -5,9 +5,11 @@ import Link from "next/link";
 import { useAppStore } from "@/lib/appStore";
 
 export function ImmediateRequest() {
-  const { requests } = useAppStore();
+  const { requests, sales } = useAppStore();
   const pendingRequests = requests.filter(
-    (request) => request.status !== "completed",
+    (request) =>
+      sales.find((sale) => sale.requestId === request.id)?.status !==
+      "completed",
   );
 
   return (
@@ -31,7 +33,13 @@ export function ImmediateRequest() {
                 {request.detail}
               </Typography>
             </div>
-            <StatusBadge className="shrink-0" status={request.status} />
+            <StatusBadge
+              className="shrink-0"
+              status={
+                sales.find((sale) => sale.requestId === request.id)?.status ??
+                "new"
+              }
+            />
           </Card>
         </Link>
       ))}

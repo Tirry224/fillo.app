@@ -14,17 +14,21 @@ import { useAppStore } from "@/lib/appStore";
 
 export function LoginForm() {
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const router = useRouter();
   const { login } = useAppStore();
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setLoading(true);
+    setError(false);
     const formData = new FormData(event.currentTarget);
-    const authenticated = login(
+    const authenticated = await login(
       String(formData.get("phone") ?? ""),
       String(formData.get("password") ?? ""),
     );
+    setLoading(false);
     setError(!authenticated);
     if (!authenticated) return;
     setSubmitted(true);
@@ -45,8 +49,8 @@ export function LoginForm() {
         placeholder="••••••••"
         required
       />
-      <Button fullWidth size="lg" type="submit">
-        Se connecter
+      <Button disabled={loading} fullWidth size="lg" type="submit">
+        {loading ? "Connexion..." : "Se connecter"}
       </Button>
       {submitted ? (
         <Typography component="p" variant="caption2" className="text-green">

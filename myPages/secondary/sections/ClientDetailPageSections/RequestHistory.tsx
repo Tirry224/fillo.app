@@ -36,7 +36,7 @@ export function RequestHistory({ clientId }: { clientId: string }) {
                     {request.detail}
                   </Typography>
                 </div>
-                <StatusBadge status={request.status} />
+                <StatusBadge status={sale?.status ?? "new"} />
               </Card>
             </Link>
           );

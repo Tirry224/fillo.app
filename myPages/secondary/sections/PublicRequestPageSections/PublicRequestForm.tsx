@@ -9,12 +9,11 @@ import {
   TextField,
   Typography,
 } from "@/app/components";
-import { useAppStore } from "@/lib/appStore";
 
 export function PublicRequestForm({ shopSlug }: { shopSlug: string }) {
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formVersion, setFormVersion] = useState(0);
-  const { addRequest } = useAppStore();
 
   useEffect(() => {
     if (!sent) {
@@ -28,19 +27,34 @@ export function PublicRequestForm({ shopSlug }: { shopSlug: string }) {
     return () => window.clearTimeout(resetTimer);
   }, [sent]);
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setError(null);
     const form = event.currentTarget;
     const formData = new FormData(form);
     const photoFile = formData.get("photo");
 
-    function submitRequest(photo?: string) {
-      addRequest({
-        name: String(formData.get("name") ?? ""),
-        phone: String(formData.get("phone") ?? ""),
-        request: String(formData.get("request") ?? ""),
-        photo,
+    async function submitRequest(photo?: string) {
+      const response = await fetch("/api/requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          shopSlug,
+          name: String(formData.get("name") ?? ""),
+          phone: String(formData.get("phone") ?? ""),
+          request: String(formData.get("request") ?? ""),
+          photo,
+        }),
       });
+
+      if (!response.ok) {
+        const result = (await response.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        setError(result?.error ?? "Impossible d'envoyer la demande.");
+        return;
+      }
+
       form.reset();
       setFormVersion((version) => version + 1);
       setSent(true);
@@ -48,13 +62,13 @@ export function PublicRequestForm({ shopSlug }: { shopSlug: string }) {
 
     if (photoFile instanceof File && photoFile.size > 0) {
       const reader = new FileReader();
-      reader.onload = () => submitRequest(String(reader.result));
-      reader.onerror = () => submitRequest(undefined);
+      reader.onload = () => void submitRequest(String(reader.result));
+      reader.onerror = () => void submitRequest(undefined);
       reader.readAsDataURL(photoFile);
       return;
     }
 
-    submitRequest(undefined);
+    void submitRequest(undefined);
   }
 
   return (
@@ -94,6 +108,12 @@ export function PublicRequestForm({ shopSlug }: { shopSlug: string }) {
           Votre demande sera envoyée directement à la boutique.
         </Typography>
       </form>
+
+      {error ? (
+        <Typography component="p" variant="caption2" className="text-red-600">
+          {error}
+        </Typography>
+      ) : null}
 
       {sent ? (
         <div className="absolute inset-0 z-10 flex items-center justify-center p-4">

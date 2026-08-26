@@ -15,17 +15,26 @@ import { useAppStore } from "@/lib/appStore";
 
 export function RegisterForm() {
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { register } = useAppStore();
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setLoading(true);
+    setError(null);
     const formData = new FormData(event.currentTarget);
-    register(
+    const success = await register(
       String(formData.get("phone") ?? ""),
       String(formData.get("shopName") ?? ""),
       String(formData.get("password") ?? ""),
     );
+    setLoading(false);
+    if (!success) {
+      setError("Erreur lors de la création du compte.");
+      return;
+    }
     setSubmitted(true);
     router.push("/dashboard");
   }
@@ -51,9 +60,14 @@ export function RegisterForm() {
         placeholder="••••••••"
         required
       />
-      <Button fullWidth size="lg" type="submit">
-        Continuer
+      <Button disabled={loading} fullWidth size="lg" type="submit">
+        {loading ? "Création..." : "Continuer"}
       </Button>
+      {error ? (
+        <Typography component="p" variant="caption2" className="text-[#b33434]">
+          {error}
+        </Typography>
+      ) : null}
       {submitted ? (
         <Typography component="p" variant="caption2" className="text-green">
           Votre boutique est prête à être créée.

@@ -12,7 +12,7 @@ import Link from "next/link";
 import { useAppStore } from "@/lib/appStore";
 
 export function ClientList() {
-  const { clients } = useAppStore();
+  const { clients, sales } = useAppStore();
   const [search, setSearch] = useState("");
   const normalizedSearch = search.trim().toLowerCase();
   const filteredClients = clients.filter(
@@ -44,7 +44,12 @@ export function ClientList() {
                   {client.phone}
                 </Typography>
               </div>
-              <StatusBadge status={client.status} />
+              <StatusBadge
+                status={
+                  sales.find((sale) => sale.clientId === client.id)?.status ??
+                  "new"
+                }
+              />
             </Link>
           </Card>
         ))}

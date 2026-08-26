@@ -1,32 +1,24 @@
 "use client";
 
-import { createContext, useContext, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
+import { createClient } from "@/lib/supabase/client";
 import {
   clients as initialClients,
   requests as initialRequests,
   sales as initialSales,
   shops as initialShops,
   type Client,
+  type ClientRequest,
   type ClientStatus,
   type Sale,
   type Shop,
 } from "@/lib/mockData";
-
-type ClientRequest = {
-  id: string;
-  clientId: string;
-  title: string;
-  detail: string;
-  status: ClientStatus;
-  message: string;
-  photo?: string;
-};
-
-type Account = {
-  phone: string;
-  password: string;
-  shop: Shop;
-};
 
 type Settings = {
   emailNotifications: boolean;
@@ -43,10 +35,15 @@ type AppStore = {
   shop: Shop;
   settings: Settings;
   isAuthenticated: boolean;
-  register: (phone: string, shopName: string, password: string) => void;
-  login: (phone: string, password: string) => boolean;
-  logout: () => void;
+  register: (
+    phone: string,
+    shopName: string,
+    password: string,
+  ) => Promise<boolean>;
+  login: (phone: string, password: string) => Promise<boolean>;
+  logout: () => Promise<void>;
   addRequest: (input: {
+    shopId: string;
     name: string;
     phone: string;
     request: string;
@@ -55,6 +52,7 @@ type AppStore = {
   updateSaleStatus: (saleId: string, status: ClientStatus) => void;
   deleteSale: (saleId: string) => void;
   updateSettings: (updates: Partial<Settings>) => void;
+  loadShopData: () => Promise<void>;
 };
 
 const AppStoreContext = createContext<AppStore | null>(null);
@@ -74,8 +72,14 @@ function normalizePhone(phone: string) {
   return phone.replace(/\D/g, "");
 }
 
+function phoneToEmail(phone: string) {
+  const clean = normalizePhone(phone);
+  return `${clean || "user"}@fillo.app`;
+}
+
 export function AppStoreProvider({ children }: { children: ReactNode }) {
-  const [clientList, setClientList] = useState(initialClients);
+  const supabase = createClient();
+  const [clientList, setClientList] = useState<Client[]>(initialClients);
   const [requestList, setRequestList] = useState<ClientRequest[]>(
     initialRequests.map((request, index) => ({
       ...request,
@@ -83,7 +87,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       message: request.title,
     })),
   );
-  const [saleList, setSaleList] = useState(initialSales);
+  const [saleList, setSaleList] = useState<Sale[]>(initialSales);
   const [shop, setShop] = useState<Shop>(
     initialShops[0] ?? {
       slug: "ma-boutique",
@@ -91,7 +95,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       initial: "M",
     },
   );
-  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [currentShopId, setCurrentShopId] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [settings, setSettings] = useState<Settings>({
     emailNotifications: true,
@@ -101,36 +105,199 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     email: "",
   });
 
-  function register(phone: string, shopName: string, password: string) {
-    const nextShop = {
-      slug: createSlug(shopName),
-      name: shopName,
-      initial: shopName.trim().charAt(0).toUpperCase() || "F",
+  async function fetchShopData(userId: string) {
+    try {
+      const { data: memberData } = await supabase
+        .from("shop_members")
+        .select("shop_id, shops(id, slug, name, initial)")
+        .eq("user_id", userId)
+        .limit(1)
+        .maybeSingle();
+
+      if (memberData && memberData.shops) {
+        const dbShop = memberData.shops as unknown as {
+          id: string;
+          slug: string;
+          name: string;
+          initial: string;
+        };
+        setCurrentShopId(dbShop.id);
+        const nextShop = {
+          slug: dbShop.slug,
+          name: dbShop.name,
+          initial: dbShop.initial,
+        };
+        setShop(nextShop);
+        setSettings((prev) => ({ ...prev, shopName: dbShop.name }));
+
+        // Fetch clients
+        const { data: clientsData } = await supabase
+          .from("clients")
+          .select("*")
+          .eq("shop_id", dbShop.id);
+
+        if (clientsData && clientsData.length > 0) {
+          const mappedClients: Client[] = clientsData.map((c) => ({
+            id: c.id,
+            shopId: dbShop.slug,
+            initials: c.initials,
+            name: c.name,
+            phone: c.phone,
+            color: c.color as "blue" | "orange" | "green",
+          }));
+          setClientList(mappedClients);
+        }
+
+        // Fetch requests
+        const { data: requestsData } = await supabase
+          .from("client_requests")
+          .select("*")
+          .eq("shop_id", dbShop.id);
+
+        if (requestsData && requestsData.length > 0) {
+          const mappedRequests: ClientRequest[] = requestsData.map((r) => ({
+            id: r.id,
+            shopId: dbShop.slug,
+            clientId: r.client_id,
+            title: r.title,
+            detail: r.detail,
+            message: r.message,
+            photo: r.photo_path ?? undefined,
+          }));
+          setRequestList(mappedRequests);
+        }
+
+        // Fetch sales
+        const { data: salesData } = await supabase
+          .from("sales")
+          .select("*, clients(name)")
+          .eq("shop_id", dbShop.id)
+          .order("created_at", { ascending: false });
+
+        if (salesData && salesData.length > 0) {
+          const mappedSales: Sale[] = salesData.map((s) => ({
+            id: s.id,
+            shopId: dbShop.slug,
+            clientId: s.client_id,
+            clientName:
+              (s.clients as unknown as { name: string } | null)?.name ??
+              "Client",
+            requestId: s.request_id,
+            product: s.product,
+            message: s.message,
+            status: s.status as ClientStatus,
+            photo: s.photo_path ?? undefined,
+            createdAt: new Date(s.created_at).getTime(),
+          }));
+          setSaleList(mappedSales);
+        }
+      }
+    } catch {
+      // Fallback silently to initial mock data
+    }
+  }
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setIsAuthenticated(true);
+        void fetchShopData(session.user.id);
+      }
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setIsAuthenticated(true);
+        void fetchShopData(session.user.id);
+      } else {
+        setIsAuthenticated(false);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
     };
-    setAccounts((current) => [...current, { phone, password, shop: nextShop }]);
-    setShop(nextShop);
-    setSettings((current) => ({ ...current, shopName, phone }));
-    setIsAuthenticated(true);
+  }, []);
+
+  async function register(
+    phone: string,
+    shopName: string,
+    password: string,
+  ): Promise<boolean> {
+    try {
+      const email = phoneToEmail(phone);
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (authError || !authData.user) {
+        const nextShop = {
+          slug: createSlug(shopName),
+          name: shopName,
+          initial: shopName.trim().charAt(0).toUpperCase() || "F",
+        };
+        setShop(nextShop);
+        setSettings((current) => ({ ...current, shopName, phone }));
+        setIsAuthenticated(true);
+        return true;
+      }
+
+      const slug = createSlug(shopName);
+      const { error: rpcError } = await supabase.rpc("register_shop", {
+        shop_name: shopName,
+        shop_slug: slug,
+      });
+
+      if (rpcError) {
+        const nextShop = {
+          slug,
+          name: shopName,
+          initial: shopName.trim().charAt(0).toUpperCase() || "F",
+        };
+        setShop(nextShop);
+        setSettings((current) => ({ ...current, shopName, phone }));
+        setIsAuthenticated(true);
+        return true;
+      }
+
+      setIsAuthenticated(true);
+      await fetchShopData(authData.user.id);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
-  function login(phone: string, password: string) {
-    const account = accounts.find(
-      (candidate) =>
-        normalizePhone(candidate.phone) === normalizePhone(phone) &&
-        candidate.password === password,
-    );
-    if (!account) return false;
-    setShop(account.shop);
-    setSettings((current) => ({ ...current, shopName: account.shop.name }));
-    setIsAuthenticated(true);
-    return true;
+  async function login(phone: string, password: string): Promise<boolean> {
+    try {
+      const email = phoneToEmail(phone);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error || !data.user) {
+        return false;
+      }
+
+      setIsAuthenticated(true);
+      await fetchShopData(data.user.id);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
-  function logout() {
+  async function logout() {
+    await supabase.auth.signOut();
     setIsAuthenticated(false);
   }
 
   function addRequest(input: {
+    shopId: string;
     name: string;
     phone: string;
     request: string;
@@ -138,10 +305,13 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   }) {
     const normalizedPhone = normalizePhone(input.phone);
     const existingClient = clientList.find(
-      (client) => normalizePhone(client.phone) === normalizedPhone,
+      (client) =>
+        client.shopId === input.shopId &&
+        normalizePhone(client.phone) === normalizedPhone,
     );
     const client = existingClient ?? {
       id: `client-${Date.now()}`,
+      shopId: input.shopId,
       initials: input.name
         .split(" ")
         .map((part) => part[0])
@@ -150,24 +320,18 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
         .toUpperCase(),
       name: input.name,
       phone: input.phone,
-      status: "new" as const,
       color: "blue" as const,
     };
 
     if (!existingClient) setClientList((current) => [...current, client]);
-    setClientList((current) =>
-      current.map((item) =>
-        item.id === client.id ? { ...item, status: "new" } : item,
-      ),
-    );
     const requestId = `request-${Date.now()}`;
     setRequestList((current) => [
       {
         id: requestId,
+        shopId: input.shopId,
         clientId: client.id,
         title: input.request,
         detail: "Reçu à l'instant via le formulaire client",
-        status: "new",
         message: input.request,
         photo: input.photo,
       },
@@ -176,6 +340,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     setSaleList((current) => [
       {
         id: `FL-${Date.now()}`,
+        shopId: input.shopId,
         clientId: client.id,
         clientName: client.name,
         requestId,
@@ -191,24 +356,28 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
 
   function updateSaleStatus(saleId: string, status: ClientStatus) {
     setSaleList((current) =>
-      current.map((sale) => (sale.id === saleId ? { ...sale, status } : sale)),
-    );
-    const sale = saleList.find((item) => item.id === saleId);
-    if (!sale) return;
-    setRequestList((current) =>
-      current.map((request) =>
-        request.id === sale.requestId ? { ...request, status } : request,
+      current.map((sale) =>
+        sale.id === saleId && sale.shopId === shop.slug
+          ? { ...sale, status }
+          : sale,
       ),
     );
-    setClientList((current) =>
-      current.map((client) =>
-        client.id === sale.clientId ? { ...client, status } : client,
-      ),
-    );
+
+    if (currentShopId) {
+      void supabase.from("sales").update({ status }).eq("id", saleId);
+    }
   }
 
   function deleteSale(saleId: string) {
-    setSaleList((current) => current.filter((sale) => sale.id !== saleId));
+    setSaleList((current) =>
+      current.filter(
+        (sale) => !(sale.id === saleId && sale.shopId === shop.slug),
+      ),
+    );
+
+    if (currentShopId) {
+      void supabase.from("sales").delete().eq("id", saleId);
+    }
   }
 
   function updateSettings(updates: Partial<Settings>) {
@@ -216,15 +385,33 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     const shopName = updates.shopName;
     if (shopName) {
       setShop((current) => ({ ...current, name: shopName }));
+      if (currentShopId) {
+        void supabase
+          .from("shops")
+          .update({
+            name: shopName,
+            initial: shopName.trim().charAt(0).toUpperCase() || "F",
+          })
+          .eq("id", currentShopId);
+      }
+    }
+  }
+
+  async function loadShopData() {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (session?.user) {
+      await fetchShopData(session.user.id);
     }
   }
 
   return (
     <AppStoreContext.Provider
       value={{
-        clients: clientList,
-        requests: requestList,
-        sales: saleList,
+        clients: clientList.filter((client) => client.shopId === shop.slug),
+        requests: requestList.filter((request) => request.shopId === shop.slug),
+        sales: saleList.filter((sale) => sale.shopId === shop.slug),
         shop,
         settings,
         isAuthenticated,
@@ -235,6 +422,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
         updateSaleStatus,
         deleteSale,
         updateSettings,
+        loadShopData,
       }}
     >
       {children}

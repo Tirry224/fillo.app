@@ -227,6 +227,27 @@ L'isolation des données entre commerçants est une priorité.
 
 ---
 
+## Consignes de collaboration
+
+1. Avant toute modification qui touche à la structure des données (types,
+   schéma, relations entre entités, ajout ou suppression de champs sur un
+   modèle existant), proposer d'abord la structure et attendre une validation
+   explicite avant d'écrire le code. Ne jamais coder une décision de
+   modélisation sans la soumettre au préalable.
+2. Si une demande est ambiguë ou peut être interprétée de plusieurs façons
+   (portée du changement, comportement attendu dans les cas limites, impact
+   sur d'autres parties du code), poser la question avant de commencer plutôt
+   que de choisir une interprétation.
+3. Si un problème dans le code existant est identifié en cours de route
+   (bug, incohérence ou dette technique) et qu'il n'est pas dans la demande
+   actuelle, le signaler explicitement au lieu de le corriger silencieusement
+   ou de l'ignorer.
+4. Expliquer brièvement le pourquoi des choix techniques lorsqu'ils ne sont
+   pas évidents, afin de faciliter l'apprentissage et pas seulement la
+   livraison.
+
+---
+
 ## 12. Authentification et autorisation
 
 Un utilisateur authentifié ne doit pouvoir accéder qu'aux données auxquelles il a réellement droit.

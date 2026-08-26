@@ -2,15 +2,16 @@ export type ClientStatus = "new" | "pending" | "completed" | "lost";
 
 export type Client = {
   id: string;
+  shopId: string;
   initials: string;
   name: string;
   phone: string;
-  status: ClientStatus;
   color: "blue" | "orange" | "green";
 };
 
 export type Sale = {
   id: string;
+  shopId: string;
   clientId: string;
   clientName: string;
   requestId: string;
@@ -19,6 +20,16 @@ export type Sale = {
   status: ClientStatus;
   photo?: string;
   createdAt: number;
+};
+
+export type ClientRequest = {
+  id: string;
+  shopId: string;
+  clientId: string;
+  title: string;
+  detail: string;
+  message: string;
+  photo?: string;
 };
 
 export type Shop = {
@@ -33,12 +44,7 @@ export const sales: Sale[] = [];
 
 export const shops: Shop[] = [];
 
-export const requests: {
-  clientId: string;
-  title: string;
-  detail: string;
-  status: ClientStatus;
-}[] = [];
+export const requests: ClientRequest[] = [];
 
 export function getSaleById(id: string) {
   return sales.find((sale) => sale.id.toLowerCase() === id.toLowerCase());
