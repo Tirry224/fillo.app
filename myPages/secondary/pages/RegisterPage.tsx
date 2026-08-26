@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Container } from "@/app/components";
 import { RegisterForm } from "@/myPages/secondary/sections/RegisterPageSections/RegisterForm";
 import { RegisterIntro } from "@/myPages/secondary/sections/RegisterPageSections/RegisterIntro";
@@ -9,7 +10,9 @@ export function RegisterPage() {
       <BrandHeader />
       <div className="flex flex-1 flex-col justify-center gap-10 py-12">
         <RegisterIntro />
-        <RegisterForm />
+        <Suspense fallback={null}>
+          <RegisterForm />
+        </Suspense>
       </div>
     </Container>
   );

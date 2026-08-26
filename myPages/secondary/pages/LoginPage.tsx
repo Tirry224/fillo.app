@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { BrandHeader, Container } from "@/app/components";
 import { LoginForm } from "@/myPages/secondary/sections/LoginPageSections/LoginForm";
 import { LoginIntro } from "@/myPages/secondary/sections/LoginPageSections/LoginIntro";
@@ -8,7 +9,9 @@ export function LoginPage() {
       <BrandHeader />
       <div className="flex flex-1 flex-col justify-center gap-10 py-12">
         <LoginIntro />
-        <LoginForm />
+        <Suspense fallback={null}>
+          <LoginForm />
+        </Suspense>
       </div>
     </Container>
   );

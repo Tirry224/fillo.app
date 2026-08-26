@@ -39,8 +39,8 @@ type AppStore = {
     phone: string,
     shopName: string,
     password: string,
-  ) => Promise<boolean>;
-  login: (phone: string, password: string) => Promise<boolean>;
+  ) => Promise<{ error: string | null }>;
+  login: (phone: string, password: string) => Promise<{ error: string | null }>;
   logout: () => Promise<void>;
   addRequest: (input: {
     shopId: string;
@@ -52,6 +52,7 @@ type AppStore = {
   updateSaleStatus: (saleId: string, status: ClientStatus) => void;
   deleteSale: (saleId: string) => void;
   updateSettings: (updates: Partial<Settings>) => void;
+  updatePassword: (newPassword: string) => Promise<{ error: string | null }>;
   loadShopData: () => Promise<void>;
 };
 
@@ -69,12 +70,41 @@ function createSlug(name: string) {
 }
 
 function normalizePhone(phone: string) {
-  return phone.replace(/\D/g, "");
+  let digits = phone.replace(/\D/g, "");
+  if (digits.startsWith("0") && digits.length >= 9) {
+    digits = digits.slice(1);
+  }
+  if (!digits.startsWith("224") && digits.length === 9) {
+    digits = `224${digits}`;
+  }
+  return digits;
 }
 
 function phoneToEmail(phone: string) {
   const clean = normalizePhone(phone);
   return `${clean || "user"}@fillo.app`;
+}
+
+function formatAuthError(message: string): string {
+  if (message.includes("Password should be at least")) {
+    return "Le mot de passe doit contenir au moins 6 caractères.";
+  }
+  if (
+    message.includes("User already registered") ||
+    message.includes("user_already_exists")
+  ) {
+    return "Un compte existe déjà avec ce numéro de téléphone.";
+  }
+  if (
+    message.includes("Invalid login credentials") ||
+    message.includes("invalid_credentials")
+  ) {
+    return "Numéro de téléphone ou mot de passe incorrect.";
+  }
+  if (message.includes("rate limit")) {
+    return "Trop de tentatives. Veuillez patienter quelques minutes.";
+  }
+  return message;
 }
 
 export function AppStoreProvider({ children }: { children: ReactNode }) {
@@ -120,6 +150,10 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
           slug: string;
           name: string;
           initial: string;
+          phone: string | null;
+          location: string | null;
+          email: string | null;
+          email_notifications: boolean | null;
         };
         setCurrentShopId(dbShop.id);
         const nextShop = {
@@ -128,7 +162,13 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
           initial: dbShop.initial,
         };
         setShop(nextShop);
-        setSettings((prev) => ({ ...prev, shopName: dbShop.name }));
+        setSettings({
+          emailNotifications: dbShop.email_notifications ?? true,
+          shopName: dbShop.name,
+          phone: dbShop.phone ?? "",
+          location: dbShop.location ?? "",
+          email: dbShop.email ?? "",
+        });
 
         // Fetch clients
         const { data: clientsData } = await supabase
@@ -197,6 +237,26 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  function resetStoreState() {
+    setIsAuthenticated(false);
+    setCurrentShopId(null);
+    setClientList([]);
+    setRequestList([]);
+    setSaleList([]);
+    setShop({
+      slug: "ma-boutique",
+      name: "Ma boutique",
+      initial: "M",
+    });
+    setSettings({
+      emailNotifications: true,
+      shopName: "Ma boutique",
+      phone: "",
+      location: "",
+      email: "",
+    });
+  }
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
@@ -212,7 +272,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
         setIsAuthenticated(true);
         void fetchShopData(session.user.id);
       } else {
-        setIsAuthenticated(false);
+        resetStoreState();
       }
     });
 
@@ -225,7 +285,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     phone: string,
     shopName: string,
     password: string,
-  ): Promise<boolean> {
+  ): Promise<{ error: string | null }> {
     try {
       const email = phoneToEmail(phone);
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -233,16 +293,12 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
         password,
       });
 
-      if (authError || !authData.user) {
-        const nextShop = {
-          slug: createSlug(shopName),
-          name: shopName,
-          initial: shopName.trim().charAt(0).toUpperCase() || "F",
-        };
-        setShop(nextShop);
-        setSettings((current) => ({ ...current, shopName, phone }));
-        setIsAuthenticated(true);
-        return true;
+      if (authError) {
+        return { error: formatAuthError(authError.message) };
+      }
+
+      if (!authData.user) {
+        return { error: "Impossible de créer le compte utilisateur." };
       }
 
       const slug = createSlug(shopName);
@@ -252,26 +308,25 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       });
 
       if (rpcError) {
-        const nextShop = {
-          slug,
-          name: shopName,
-          initial: shopName.trim().charAt(0).toUpperCase() || "F",
-        };
-        setShop(nextShop);
-        setSettings((current) => ({ ...current, shopName, phone }));
-        setIsAuthenticated(true);
-        return true;
+        return { error: rpcError.message };
       }
 
       setIsAuthenticated(true);
       await fetchShopData(authData.user.id);
-      return true;
-    } catch {
-      return false;
+      return { error: null };
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Une erreur inattendue est survenue.";
+      return { error: message };
     }
   }
 
-  async function login(phone: string, password: string): Promise<boolean> {
+  async function login(
+    phone: string,
+    password: string,
+  ): Promise<{ error: string | null }> {
     try {
       const email = phoneToEmail(phone);
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -279,24 +334,57 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
         password,
       });
 
-      if (error || !data.user) {
-        return false;
+      if (error) {
+        return { error: formatAuthError(error.message) };
+      }
+
+      if (!data.user) {
+        return { error: "Utilisateur non trouvé." };
       }
 
       setIsAuthenticated(true);
       await fetchShopData(data.user.id);
-      return true;
-    } catch {
-      return false;
+      return { error: null };
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Une erreur inattendue est survenue.";
+      return { error: message };
     }
   }
 
   async function logout() {
     await supabase.auth.signOut();
-    setIsAuthenticated(false);
+    resetStoreState();
   }
 
-  function addRequest(input: {
+  async function updatePassword(
+    newPassword: string,
+  ): Promise<{ error: string | null }> {
+    try {
+      if (!newPassword || newPassword.length < 6) {
+        return {
+          error: "Le mot de passe doit contenir au moins 6 caractères.",
+        };
+      }
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+      if (error) {
+        return { error: formatAuthError(error.message) };
+      }
+      return { error: null };
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Une erreur inattendue est survenue.";
+      return { error: message };
+    }
+  }
+
+  async function addRequest(input: {
     shopId: string;
     name: string;
     phone: string;
@@ -352,6 +440,20 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       },
       ...current,
     ]);
+
+    if (currentShopId) {
+      await supabase.rpc("submit_public_request", {
+        target_shop_slug: shop.slug,
+        customer_name: input.name,
+        customer_phone: input.phone,
+        request_text: input.request,
+        request_photo_path: input.photo ?? null,
+      });
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData.session?.user) {
+        await fetchShopData(sessionData.session.user.id);
+      }
+    }
   }
 
   function updateSaleStatus(saleId: string, status: ClientStatus) {
@@ -385,14 +487,24 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     const shopName = updates.shopName;
     if (shopName) {
       setShop((current) => ({ ...current, name: shopName }));
-      if (currentShopId) {
-        void supabase
-          .from("shops")
-          .update({
-            name: shopName,
-            initial: shopName.trim().charAt(0).toUpperCase() || "F",
-          })
-          .eq("id", currentShopId);
+    }
+
+    if (currentShopId) {
+      const payload: Record<string, unknown> = {};
+      if (updates.shopName !== undefined) {
+        payload.name = updates.shopName;
+        payload.initial =
+          updates.shopName.trim().charAt(0).toUpperCase() || "F";
+      }
+      if (updates.phone !== undefined) payload.phone = updates.phone;
+      if (updates.location !== undefined) payload.location = updates.location;
+      if (updates.email !== undefined) payload.email = updates.email;
+      if (updates.emailNotifications !== undefined) {
+        payload.email_notifications = updates.emailNotifications;
+      }
+
+      if (Object.keys(payload).length > 0) {
+        void supabase.from("shops").update(payload).eq("id", currentShopId);
       }
     }
   }
@@ -422,6 +534,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
         updateSaleStatus,
         deleteSale,
         updateSettings,
+        updatePassword,
         loadShopData,
       }}
     >

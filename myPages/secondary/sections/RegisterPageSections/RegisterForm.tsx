@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Button,
   PasswordField,
@@ -13,11 +13,24 @@ import {
 } from "@/app/components";
 import { useAppStore } from "@/lib/appStore";
 
+function getSafeNextUrl(nextParam: string | null): string | null {
+  if (!nextParam) return null;
+  if (
+    !nextParam.startsWith("/") ||
+    nextParam.startsWith("//") ||
+    nextParam.startsWith("/\\")
+  ) {
+    return null;
+  }
+  return nextParam;
+}
+
 export function RegisterForm() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { register } = useAppStore();
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -25,18 +38,19 @@ export function RegisterForm() {
     setLoading(true);
     setError(null);
     const formData = new FormData(event.currentTarget);
-    const success = await register(
+    const result = await register(
       String(formData.get("phone") ?? ""),
       String(formData.get("shopName") ?? ""),
       String(formData.get("password") ?? ""),
     );
     setLoading(false);
-    if (!success) {
-      setError("Erreur lors de la création du compte.");
+    if (result.error) {
+      setError(result.error);
       return;
     }
     setSubmitted(true);
-    router.push("/dashboard");
+    const nextParam = getSafeNextUrl(searchParams.get("next"));
+    router.push(nextParam || "/dashboard");
   }
 
   return (
@@ -74,7 +88,16 @@ export function RegisterForm() {
         </Typography>
       ) : null}
       <Typography component="p" className="text-center" variant="caption2">
-        <Link className="font-bold text-navy" href="/login">
+        <Link
+          className="font-bold text-navy"
+          href={
+            getSafeNextUrl(searchParams.get("next"))
+              ? `/login?next=${encodeURIComponent(
+                  getSafeNextUrl(searchParams.get("next"))!,
+                )}`
+              : "/login"
+          }
+        >
           <span>Déjà un compte ? </span>
           <span className="underline">Se connecter</span>
         </Link>

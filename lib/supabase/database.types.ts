@@ -31,6 +31,10 @@ export type Database = {
           slug: string;
           name: string;
           initial: string;
+          phone: string | null;
+          location: string | null;
+          email: string | null;
+          email_notifications: boolean | null;
           created_at: string;
         };
         Insert: {
@@ -38,6 +42,10 @@ export type Database = {
           slug: string;
           name: string;
           initial: string;
+          phone?: string | null;
+          location?: string | null;
+          email?: string | null;
+          email_notifications?: boolean | null;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["shops"]["Insert"]>;
