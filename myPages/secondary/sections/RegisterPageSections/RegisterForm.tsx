@@ -1,17 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import type { FormEvent } from "react";
+import { useActionState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import {
-  Button,
-  PasswordField,
-  PhoneField,
-  TextField,
-  Typography,
-} from "@/app/components";
-import { useAppStore } from "@/lib/appStore";
+import { useSearchParams } from "next/navigation";
+import { Button, PasswordField, TextField, Typography } from "@/app/components";
+import { registerAction, type AuthActionState } from "@/lib/actions/auth";
 
 function getSafeNextUrl(nextParam: string | null): string | null {
   if (!nextParam) return null;
@@ -25,40 +18,22 @@ function getSafeNextUrl(nextParam: string | null): string | null {
   return nextParam;
 }
 
-export function RegisterForm() {
-  const [submitted, setSubmitted] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { register } = useAppStore();
+const initialState: AuthActionState = { error: null };
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setLoading(true);
-    setError(null);
-    const formData = new FormData(event.currentTarget);
-    const result = await register(
-      String(formData.get("phone") ?? ""),
-      String(formData.get("shopName") ?? ""),
-      String(formData.get("password") ?? ""),
-    );
-    setLoading(false);
-    if (result.error) {
-      setError(result.error);
-      return;
-    }
-    setSubmitted(true);
-    const nextParam = getSafeNextUrl(searchParams.get("next"));
-    router.push(nextParam || "/dashboard");
-  }
+export function RegisterForm() {
+  const searchParams = useSearchParams();
+  const next = getSafeNextUrl(searchParams.get("next"));
+  const [state, formAction, pending] = useActionState(registerAction, initialState);
 
   return (
-    <form className="grid gap-4" onSubmit={handleSubmit}>
-      <PhoneField
-        autoComplete="tel"
-        name="phone"
-        placeholder="620 45 89 12"
+    <form className="grid gap-4" action={formAction}>
+      <input type="hidden" name="next" value={next ?? "/dashboard"} />
+      <TextField
+        autoComplete="email"
+        label="Adresse email"
+        name="email"
+        placeholder="vous@exemple.com"
+        type="email"
         required
       />
       <TextField
@@ -74,29 +49,23 @@ export function RegisterForm() {
         placeholder="••••••••"
         required
       />
-      <Button disabled={loading} fullWidth size="lg" type="submit">
-        {loading ? "Création..." : "Continuer"}
+      <Button disabled={pending} fullWidth size="lg" type="submit">
+        {pending ? "Création..." : "Continuer"}
       </Button>
-      {error ? (
+      {state.error ? (
         <Typography component="p" variant="caption2" className="text-[#b33434]">
-          {error}
+          {state.error}
         </Typography>
       ) : null}
-      {submitted ? (
+      {state.info ? (
         <Typography component="p" variant="caption2" className="text-green">
-          Votre boutique est prête à être créée.
+          {state.info}
         </Typography>
       ) : null}
       <Typography component="p" className="text-center" variant="caption2">
         <Link
           className="font-bold text-navy"
-          href={
-            getSafeNextUrl(searchParams.get("next"))
-              ? `/login?next=${encodeURIComponent(
-                  getSafeNextUrl(searchParams.get("next"))!,
-                )}`
-              : "/login"
-          }
+          href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"}
         >
           <span>Déjà un compte ? </span>
           <span className="underline">Se connecter</span>

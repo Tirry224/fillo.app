@@ -1,11 +1,14 @@
-"use client";
-
 import { Card, StatusBadge, Typography } from "@/app/components";
 import Link from "next/link";
-import { useAppStore } from "@/lib/appStore";
+import type { ClientRequest, Sale } from "@/lib/types";
 
-export function ImmediateRequest() {
-  const { requests, sales } = useAppStore();
+export function ImmediateRequest({
+  requests,
+  sales,
+}: {
+  requests: ClientRequest[];
+  sales: Sale[];
+}) {
   const pendingRequests = requests.filter(
     (request) =>
       sales.find((sale) => sale.requestId === request.id)?.status !==

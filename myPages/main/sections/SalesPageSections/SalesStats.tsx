@@ -1,10 +1,7 @@
-"use client";
-
 import { Card, Typography } from "@/app/components";
-import { useAppStore } from "@/lib/appStore";
+import type { Sale } from "@/lib/types";
 
-export function SalesStats() {
-  const { sales } = useAppStore();
+export function SalesStats({ sales }: { sales: Sale[] }) {
   const stats = [
     {
       label: "Ventes réussies",

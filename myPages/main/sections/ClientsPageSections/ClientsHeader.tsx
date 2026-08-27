@@ -1,15 +1,10 @@
-"use client";
-
 import { Typography } from "@/app/components";
-import { useAppStore } from "@/lib/appStore";
 
-export function ClientsHeader() {
-  const { clients } = useAppStore();
-
+export function ClientsHeader({ clientCount }: { clientCount: number }) {
   return (
     <header>
       <Typography component="h1" variant="h3">
-        Mes clients ({clients.length})
+        Mes clients ({clientCount})
       </Typography>
     </header>
   );

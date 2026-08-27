@@ -1,7 +1,7 @@
 import { Typography } from "@/app/components";
-import type { Shop } from "@/lib/mockData";
+import type { PublicShop } from "@/lib/types";
 
-export function PublicBrandHeader({ shop }: { shop: Shop }) {
+export function PublicBrandHeader({ shop }: { shop: PublicShop }) {
   return (
     <header className="grid justify-items-center gap-3 text-center">
       <span className="flex size-10 items-center justify-center rounded-[var(--radius-control)] bg-navy font-display text-xl font-bold text-white">

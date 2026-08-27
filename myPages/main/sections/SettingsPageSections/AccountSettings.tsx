@@ -1,22 +1,23 @@
 "use client";
 
 import { LockKeyhole } from "lucide-react";
-import { useAppStore } from "@/lib/appStore";
+import { updatePasswordAction } from "@/lib/actions/auth";
 import { SettingRow, SettingsGroup } from "./SettingsSection";
 
 export function AccountSettings() {
-  const { updatePassword } = useAppStore();
-
   async function handlePasswordChange() {
+    const currentPassword = window.prompt("Saisissez votre mot de passe actuel :");
+    if (!currentPassword) return;
     const newPassword = window.prompt(
       "Saisissez votre nouveau mot de passe (min. 6 caractères) :",
     );
     if (!newPassword) return;
-    if (newPassword.length < 6) {
-      window.alert("Le mot de passe doit contenir au moins 6 caractères.");
-      return;
-    }
-    const result = await updatePassword(newPassword);
+
+    const formData = new FormData();
+    formData.set("currentPassword", currentPassword);
+    formData.set("newPassword", newPassword);
+    const result = await updatePasswordAction({ error: null }, formData);
+
     if (result.error) {
       window.alert(`Erreur : ${result.error}`);
     } else {

@@ -1,11 +1,15 @@
 "use client";
 
+import { useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { MapPin, MessageCircle, Store } from "lucide-react";
-import { useAppStore } from "@/lib/appStore";
+import { updateShopSettingsAction } from "@/lib/actions/shop";
 import { SettingRow, SettingsGroup } from "./SettingsSection";
+import type { ShopSettings } from "@/lib/types";
 
-export function CommerceSettings() {
-  const { settings, updateSettings } = useAppStore();
+export function CommerceSettings({ settings }: { settings: ShopSettings }) {
+  const router = useRouter();
+  const [, startTransition] = useTransition();
 
   function requestSetting(
     key: "shopName" | "location" | "email",
@@ -13,7 +17,15 @@ export function CommerceSettings() {
     currentValue: string,
   ) {
     const value = window.prompt(label, currentValue);
-    if (value?.trim()) updateSettings({ [key]: value.trim() });
+    if (!value?.trim()) return;
+    startTransition(async () => {
+      const result = await updateShopSettingsAction({ [key]: value.trim() });
+      if (result.error) {
+        window.alert(result.error);
+        return;
+      }
+      router.refresh();
+    });
   }
 
   return (

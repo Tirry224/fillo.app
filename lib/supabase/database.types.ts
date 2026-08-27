@@ -1,6 +1,13 @@
 export type Database = {
   public: {
+    Views: Record<string, never>;
     Functions: {
+      get_public_shop: {
+        Args: {
+          shop_slug: string;
+        };
+        Returns: { name: string; initial: string }[];
+      };
       submit_public_request: {
         Args: {
           target_shop_slug: string;
@@ -49,6 +56,7 @@ export type Database = {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["shops"]["Insert"]>;
+        Relationships: [];
       };
       shop_members: {
         Row: {
@@ -64,6 +72,15 @@ export type Database = {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["shop_members"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "shop_members_shop_id_fkey";
+            columns: ["shop_id"];
+            isOneToOne: false;
+            referencedRelation: "shops";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       clients: {
         Row: {
@@ -81,6 +98,15 @@ export type Database = {
           "id" | "created_at"
         > & { id?: string; created_at?: string };
         Update: Partial<Database["public"]["Tables"]["clients"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "clients_shop_id_fkey";
+            columns: ["shop_id"];
+            isOneToOne: false;
+            referencedRelation: "shops";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       client_requests: {
         Row: {
@@ -100,6 +126,22 @@ export type Database = {
         Update: Partial<
           Database["public"]["Tables"]["client_requests"]["Insert"]
         >;
+        Relationships: [
+          {
+            foreignKeyName: "client_requests_shop_id_fkey";
+            columns: ["shop_id"];
+            isOneToOne: false;
+            referencedRelation: "shops";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_requests_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       sales: {
         Row: {
@@ -118,6 +160,29 @@ export type Database = {
           "id" | "created_at"
         > & { id?: string; created_at?: string };
         Update: Partial<Database["public"]["Tables"]["sales"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "sales_shop_id_fkey";
+            columns: ["shop_id"];
+            isOneToOne: false;
+            referencedRelation: "shops";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sales_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sales_request_id_fkey";
+            columns: ["request_id"];
+            isOneToOne: false;
+            referencedRelation: "client_requests";
+            referencedColumns: ["id"];
+          },
+        ];
       };
     };
   };

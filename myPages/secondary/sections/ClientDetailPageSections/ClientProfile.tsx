@@ -1,8 +1,6 @@
-"use client";
-
 import Link from "next/link";
 import { Avatar, Button, Typography } from "@/app/components";
-import type { Client } from "@/lib/mockData";
+import type { Client } from "@/lib/types";
 
 export function ClientProfile({ client }: { client: Client }) {
   const whatsappNumber = client.phone.replace(/\D/g, "");

@@ -1,11 +1,8 @@
-"use client";
-
 import Link from "next/link";
 import { Card, Typography } from "@/app/components";
-import { useAppStore } from "@/lib/appStore";
+import type { Sale } from "@/lib/types";
 
-export function SalesSummary() {
-  const { sales } = useAppStore();
+export function SalesSummary({ sales }: { sales: Sale[] }) {
   const metrics = [
     {
       status: "new",

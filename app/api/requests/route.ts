@@ -1,7 +1,47 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+/**
+ * Limite de débit basique, en mémoire, par IP. Ne protège qu'une seule
+ * instance de serveur (pas de partage entre instances en déploiement
+ * multi-instance/serverless) : suffisant pour dissuader un abus simple,
+ * mais une solution durable (ex. Upstash Redis, Vercel KV) est nécessaire
+ * avant une mise à l'échelle en production.
+ */
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
+const RATE_LIMIT_MAX_REQUESTS = 5;
+const requestTimestampsByIp = new Map<string, number[]>();
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const timestamps = (requestTimestampsByIp.get(ip) ?? []).filter(
+    (timestamp) => now - timestamp < RATE_LIMIT_WINDOW_MS,
+  );
+
+  if (timestamps.length >= RATE_LIMIT_MAX_REQUESTS) {
+    requestTimestampsByIp.set(ip, timestamps);
+    return true;
+  }
+
+  timestamps.push(now);
+  requestTimestampsByIp.set(ip, timestamps);
+  return false;
+}
+
+function getClientIp(request: Request): string {
+  const forwardedFor = request.headers.get("x-forwarded-for");
+  return forwardedFor?.split(",")[0]?.trim() || "unknown";
+}
+
 export async function POST(request: Request) {
+  const ip = getClientIp(request);
+  if (isRateLimited(ip)) {
+    return NextResponse.json(
+      { error: "Trop de demandes envoyées. Merci de réessayer plus tard." },
+      { status: 429 },
+    );
+  }
+
   const body = (await request.json()) as {
     shopSlug?: unknown;
     name?: unknown;
@@ -23,6 +63,14 @@ export async function POST(request: Request) {
   }
 
   const supabase = await createClient();
+
+  const { data: shopCheck } = await supabase.rpc("get_public_shop", {
+    shop_slug: body.shopSlug,
+  });
+  if (!shopCheck?.[0]) {
+    return NextResponse.json({ error: "Boutique introuvable" }, { status: 404 });
+  }
+
   let photoUrl: string | null = null;
 
   if (typeof body.photo === "string" && body.photo.startsWith("data:image/")) {

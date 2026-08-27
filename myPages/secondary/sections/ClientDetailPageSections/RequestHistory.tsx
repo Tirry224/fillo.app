@@ -1,9 +1,16 @@
 import { Card, StatusBadge, Typography } from "@/app/components";
 import Link from "next/link";
-import { useAppStore } from "@/lib/appStore";
+import type { ClientRequest, Sale } from "@/lib/types";
 
-export function RequestHistory({ clientId }: { clientId: string }) {
-  const { requests, sales } = useAppStore();
+export function RequestHistory({
+  clientId,
+  requests,
+  sales,
+}: {
+  clientId: string;
+  requests: ClientRequest[];
+  sales: Sale[];
+}) {
   const clientRequests = requests.filter(
     (request) => request.clientId === clientId,
   );

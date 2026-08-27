@@ -1,11 +1,25 @@
 "use client";
 
+import { useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Card, StatusSelect, Typography } from "@/app/components";
-import type { Sale } from "@/lib/mockData";
-import { useAppStore } from "@/lib/appStore";
+import type { Sale } from "@/lib/types";
+import { updateSaleStatusAction } from "@/lib/actions/shop";
 
 export function SaleSummary({ sale }: { sale: Sale }) {
-  const { updateSaleStatus } = useAppStore();
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+
+  function handleStatusChange(status: string) {
+    startTransition(async () => {
+      const result = await updateSaleStatusAction(sale.id, status as Sale["status"]);
+      if (result.error) {
+        window.alert(result.error);
+        return;
+      }
+      router.refresh();
+    });
+  }
 
   return (
     <section className="grid gap-4">
@@ -38,9 +52,8 @@ export function SaleSummary({ sale }: { sale: Sale }) {
       </Card>
       <StatusSelect
         defaultValue={sale.status}
-        onChange={(status) =>
-          updateSaleStatus(sale.id, status as Sale["status"])
-        }
+        disabled={pending}
+        onChange={handleStatusChange}
       />
     </section>
   );

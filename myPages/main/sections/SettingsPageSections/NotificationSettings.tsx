@@ -1,17 +1,28 @@
 "use client";
 
+import { useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Mail } from "lucide-react";
+import { updateShopSettingsAction } from "@/lib/actions/shop";
 import { SettingRow, SettingsGroup } from "./SettingsSection";
 
-type NotificationSettingsProps = {
-  enabled: boolean;
-  onToggle: () => void;
-};
+export function NotificationSettings({ enabled }: { enabled: boolean }) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
 
-export function NotificationSettings({
-  enabled,
-  onToggle,
-}: NotificationSettingsProps) {
+  function handleToggle() {
+    startTransition(async () => {
+      const result = await updateShopSettingsAction({
+        emailNotifications: !enabled,
+      });
+      if (result.error) {
+        window.alert(result.error);
+        return;
+      }
+      router.refresh();
+    });
+  }
+
   return (
     <SettingsGroup title="Notifications">
       <SettingRow
@@ -23,7 +34,7 @@ export function NotificationSettings({
             aria-hidden="true"
             className={`relative block h-9 w-[70px] rounded-full p-1 transition-colors ${
               enabled ? "bg-navy" : "bg-[#d8d1c5]"
-            }`}
+            } ${pending ? "opacity-60" : ""}`}
           >
             <span
               className={`block size-7 rounded-full bg-surface shadow-sm transition-transform ${
@@ -32,7 +43,7 @@ export function NotificationSettings({
             />
           </span>
         }
-        onClick={onToggle}
+        onClick={handleToggle}
       />
     </SettingsGroup>
   );

@@ -1,6 +1,6 @@
-import { PublicRequestPage } from "@/myPages/secondary/pages/PublicRequestPage";
-import { getShopBySlug } from "@/lib/mockData";
 import { notFound } from "next/navigation";
+import { PublicRequestPage } from "@/myPages/secondary/pages/PublicRequestPage";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function PublicRequestRoute({
   params,
@@ -8,11 +8,19 @@ export default async function PublicRequestRoute({
   params: Promise<{ shopSlug: string }>;
 }) {
   const { shopSlug } = await params;
-  const shop = getShopBySlug(shopSlug);
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_public_shop", {
+    shop_slug: shopSlug,
+  });
 
-  if (!shop) {
+  const shopInfo = data?.[0];
+  if (error || !shopInfo) {
     notFound();
   }
 
-  return <PublicRequestPage shop={shop} />;
+  return (
+    <PublicRequestPage
+      shop={{ slug: shopSlug, name: shopInfo.name, initial: shopInfo.initial }}
+    />
+  );
 }

@@ -1,10 +1,8 @@
-"use client";
-
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Card, Container, StatusBadge, Typography } from "@/app/components";
-import type { ClientStatus } from "@/lib/mockData";
-import { useAppStore } from "@/lib/appStore";
+import type { ClientStatus } from "@/lib/types";
+import { requireShopWorkspace } from "@/lib/data";
 
 const statusLabels: Record<ClientStatus, string> = {
   new: "Nouvelles demandes",
@@ -17,9 +15,7 @@ function isClientStatus(value: string): value is ClientStatus {
   return value in statusLabels;
 }
 
-export function SalesByStatusPage({ status }: { status: string }) {
-  const { sales } = useAppStore();
-
+export async function SalesByStatusPage({ status }: { status: string }) {
   if (!isClientStatus(status)) {
     return (
       <Container className="gap-8">
@@ -28,6 +24,7 @@ export function SalesByStatusPage({ status }: { status: string }) {
     );
   }
 
+  const { sales } = await requireShopWorkspace();
   const filteredSales = sales.filter((sale) => sale.status === status);
 
   return (

@@ -1,14 +1,12 @@
-"use client";
-
 import Link from "next/link";
 import { Container, Typography } from "@/app/components";
 import { ClientProfile } from "@/myPages/secondary/sections/ClientDetailPageSections/ClientProfile";
 import { RequestHistory } from "@/myPages/secondary/sections/ClientDetailPageSections/RequestHistory";
 import { ArrowLeft } from "lucide-react";
-import { useAppStore } from "@/lib/appStore";
+import { requireShopWorkspace } from "@/lib/data";
 
-export function ClientDetailPage({ clientId }: { clientId: string }) {
-  const { clients } = useAppStore();
+export async function ClientDetailPage({ clientId }: { clientId: string }) {
+  const { clients, requests, sales } = await requireShopWorkspace();
   const client = clients.find((item) => item.id === clientId);
 
   if (!client) {
@@ -40,7 +38,7 @@ export function ClientDetailPage({ clientId }: { clientId: string }) {
         <span className="text-sm font-bold">Fiche client</span>
       </Link>
       <ClientProfile client={client} />
-      <RequestHistory clientId={client.id} />
+      <RequestHistory clientId={client.id} requests={requests} sales={sales} />
     </Container>
   );
 }

@@ -9,10 +9,9 @@ import {
   Typography,
 } from "@/app/components";
 import Link from "next/link";
-import { useAppStore } from "@/lib/appStore";
+import type { Client, Sale } from "@/lib/types";
 
-export function ClientList() {
-  const { clients, sales } = useAppStore();
+export function ClientList({ clients, sales }: { clients: Client[]; sales: Sale[] }) {
   const [search, setSearch] = useState("");
   const normalizedSearch = search.trim().toLowerCase();
   const filteredClients = clients.filter(

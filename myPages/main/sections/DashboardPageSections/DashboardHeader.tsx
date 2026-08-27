@@ -1,16 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Typography } from "@/app/components";
 import { Bell, BellOff, Check } from "lucide-react";
-import { useAppStore } from "@/lib/appStore";
+import { updateShopSettingsAction } from "@/lib/actions/shop";
+import type { Shop } from "@/lib/types";
 
-export function DashboardHeader() {
+export function DashboardHeader({
+  shop,
+  emailNotifications,
+}: {
+  shop: Shop;
+  emailNotifications: boolean;
+}) {
   const [copyState, setCopyState] = useState<"idle" | "copied" | "error">(
     "idle",
   );
-  const { shop, settings, updateSettings } = useAppStore();
+  const [pending, startTransition] = useTransition();
+  const router = useRouter();
   const publicUrl = `https://fillo.app/${shop.slug}`;
 
   useEffect(() => {
@@ -34,6 +43,19 @@ export function DashboardHeader() {
     }
   }
 
+  function handleToggleNotifications() {
+    startTransition(async () => {
+      const result = await updateShopSettingsAction({
+        emailNotifications: !emailNotifications,
+      });
+      if (result.error) {
+        window.alert(result.error);
+        return;
+      }
+      router.refresh();
+    });
+  }
+
   return (
     <header className="-mx-4 -mt-6 grid gap-5 rounded-b-[var(--radius-card)] bg-navy px-4 pb-5 pt-6 text-white sm:-mx-6 sm:-mt-8 sm:px-6">
       <div className="flex items-start justify-between">
@@ -52,19 +74,16 @@ export function DashboardHeader() {
         <div className="flex gap-2" aria-label="Actions du tableau de bord">
           <button
             aria-label={
-              settings.emailNotifications
+              emailNotifications
                 ? "Désactiver les notifications"
                 : "Activer les notifications"
             }
-            className="flex size-9 items-center justify-center rounded-[var(--radius-control)] bg-white/10 text-sm"
-            onClick={() =>
-              updateSettings({
-                emailNotifications: !settings.emailNotifications,
-              })
-            }
+            className="flex size-9 items-center justify-center rounded-[var(--radius-control)] bg-white/10 text-sm disabled:opacity-60"
+            disabled={pending}
+            onClick={handleToggleNotifications}
             type="button"
           >
-            {settings.emailNotifications ? (
+            {emailNotifications ? (
               <Bell aria-hidden="true" size={17} />
             ) : (
               <BellOff aria-hidden="true" size={17} />

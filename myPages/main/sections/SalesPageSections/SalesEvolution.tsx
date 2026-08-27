@@ -1,7 +1,5 @@
-"use client";
-
 import { Card, Typography } from "@/app/components";
-import { useAppStore } from "@/lib/appStore";
+import type { Sale } from "@/lib/types";
 
 function getLastSixMonths() {
   const now = new Date();
@@ -11,9 +9,7 @@ function getLastSixMonths() {
   );
 }
 
-export function SalesEvolution() {
-  const { sales } = useAppStore();
-
+export function SalesEvolution({ sales }: { sales: Sale[] }) {
   const monthlyData = getLastSixMonths().map((month) => {
     const monthSales = sales.filter((sale) => {
       const saleDate = new Date(sale.createdAt);

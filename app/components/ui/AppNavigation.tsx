@@ -2,7 +2,6 @@
 
 import { usePathname } from "next/navigation";
 import { BottomNavigation } from "./BottomNavigation";
-import { useAppStore } from "@/lib/appStore";
 import {
   LayoutDashboard,
   Settings,
@@ -33,16 +32,12 @@ const navigationItems = [
   },
 ];
 
-export type AppNavigationProps = Record<string, never>;
+export type AppNavigationProps = {
+  settingsIncomplete?: boolean;
+};
 
-export function AppNavigation() {
+export function AppNavigation({ settingsIncomplete = false }: AppNavigationProps) {
   const pathname = usePathname();
-  const { settings } = useAppStore();
-  const settingsIncomplete =
-    !settings.shopName ||
-    !settings.phone ||
-    !settings.location ||
-    !settings.email;
 
   return (
     <BottomNavigation

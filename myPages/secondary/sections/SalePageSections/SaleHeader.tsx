@@ -1,19 +1,27 @@
 "use client";
 
+import { useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Trash2 } from "lucide-react";
-import type { Sale } from "@/lib/mockData";
-import { useAppStore } from "@/lib/appStore";
+import type { Sale } from "@/lib/types";
+import { deleteSaleAction } from "@/lib/actions/shop";
 
 export function SaleHeader({ sale }: { sale: Sale }) {
   const router = useRouter();
-  const { deleteSale } = useAppStore();
+  const [pending, startTransition] = useTransition();
 
   function handleDelete() {
     if (!window.confirm("Supprimer cette vente ?")) return;
-    deleteSale(sale.id);
-    router.push("/ventes");
+    startTransition(async () => {
+      const result = await deleteSaleAction(sale.id);
+      if (result.error) {
+        window.alert(result.error);
+        return;
+      }
+      router.push("/ventes");
+      router.refresh();
+    });
   }
 
   return (
@@ -28,7 +36,8 @@ export function SaleHeader({ sale }: { sale: Sale }) {
       </Link>
       <button
         aria-label="Supprimer la vente"
-        className="text-xl text-[#c53f3f]"
+        className="text-xl text-[#c53f3f] disabled:opacity-60"
+        disabled={pending}
         onClick={handleDelete}
         type="button"
       >

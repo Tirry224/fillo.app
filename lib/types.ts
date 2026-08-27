@@ -33,34 +33,23 @@ export type ClientRequest = {
 };
 
 export type Shop = {
+  id: string;
   slug: string;
   name: string;
   initial: string;
 };
 
-export const clients: Client[] = [];
+/** Vue publique d'une boutique : uniquement les champs affichables sur la page client, sans id ni coordonnées privées. */
+export type PublicShop = {
+  slug: string;
+  name: string;
+  initial: string;
+};
 
-export const sales: Sale[] = [];
-
-export const shops: Shop[] = [];
-
-export const requests: ClientRequest[] = [];
-
-export function getSaleById(id: string) {
-  return sales.find((sale) => sale.id.toLowerCase() === id.toLowerCase());
-}
-
-export function getShopBySlug(slug: string) {
-  const existingShop = shops.find((shop) => shop.slug === slug);
-  if (existingShop) return existingShop;
-
-  const name = slug
-    .split("-")
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-
-  return name
-    ? { slug, name, initial: name.charAt(0).toUpperCase() }
-    : undefined;
-}
+export type ShopSettings = {
+  shopName: string;
+  phone: string;
+  location: string;
+  email: string;
+  emailNotifications: boolean;
+};

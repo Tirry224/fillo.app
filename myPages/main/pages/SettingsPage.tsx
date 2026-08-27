@@ -1,5 +1,3 @@
-"use client";
-
 import { AppNavigation, Container, Typography } from "@/app/components";
 import { uiStyles } from "@/app/components/ui/Typography";
 import { AccountSettings } from "@/myPages/main/sections/SettingsPageSections/AccountSettings";
@@ -7,10 +5,12 @@ import { CommerceSettings } from "@/myPages/main/sections/SettingsPageSections/C
 import { NotificationSettings } from "@/myPages/main/sections/SettingsPageSections/NotificationSettings";
 import { SettingsFeedback } from "@/myPages/main/sections/SettingsPageSections/SettingsFeedback";
 import { SettingsLogout } from "@/myPages/main/sections/SettingsPageSections/SettingsLogout";
-import { useAppStore } from "@/lib/appStore";
+import { requireShopWorkspace } from "@/lib/data";
 
-export function SettingsPage() {
-  const { settings, updateSettings } = useAppStore();
+export async function SettingsPage() {
+  const { settings } = await requireShopWorkspace();
+  const settingsIncomplete =
+    !settings.shopName || !settings.phone || !settings.location || !settings.email;
 
   return (
     <Container className={`${uiStyles.sectionGap} pb-24`}>
@@ -19,19 +19,14 @@ export function SettingsPage() {
       </Typography>
 
       <div className="space-y-8">
-        <CommerceSettings />
-        <NotificationSettings
-          enabled={settings.emailNotifications}
-          onToggle={() =>
-            updateSettings({ emailNotifications: !settings.emailNotifications })
-          }
-        />
+        <CommerceSettings settings={settings} />
+        <NotificationSettings enabled={settings.emailNotifications} />
         <AccountSettings />
         <SettingsFeedback />
         <SettingsLogout />
       </div>
 
-      <AppNavigation />
+      <AppNavigation settingsIncomplete={settingsIncomplete} />
     </Container>
   );
 }

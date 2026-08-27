@@ -1,12 +1,10 @@
-"use client";
-
 import { Container } from "@/app/components";
 import { SaleHeader } from "@/myPages/secondary/sections/SalePageSections/SaleHeader";
 import { SaleSummary } from "@/myPages/secondary/sections/SalePageSections/SaleSummary";
-import { useAppStore } from "@/lib/appStore";
+import { requireShopWorkspace } from "@/lib/data";
 
-export function SalePage({ saleId }: { saleId: string }) {
-  const { sales } = useAppStore();
+export async function SalePage({ saleId }: { saleId: string }) {
+  const { sales } = await requireShopWorkspace();
   const sale = sales.find(
     (item) => item.id.toLowerCase() === saleId.toLowerCase(),
   );
