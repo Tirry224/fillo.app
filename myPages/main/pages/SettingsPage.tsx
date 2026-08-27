@@ -14,7 +14,7 @@ export async function SettingsPage() {
 
   return (
     <Container className={`${uiStyles.sectionGap} pb-24`}>
-      <Typography component="h1" variant="h2" className="mt-1">
+      <Typography component="h1" variant="h2" className="ml-1 mt-1">
         Réglages
       </Typography>
 

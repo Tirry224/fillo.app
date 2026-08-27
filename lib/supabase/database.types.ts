@@ -82,6 +82,32 @@ export type Database = {
           },
         ];
       };
+      shop_feedback: {
+        Row: {
+          id: string;
+          shop_id: string;
+          user_id: string;
+          message: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          shop_id: string;
+          user_id: string;
+          message: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["shop_feedback"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "shop_feedback_shop_id_fkey";
+            columns: ["shop_id"];
+            isOneToOne: false;
+            referencedRelation: "shops";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       clients: {
         Row: {
           id: string;
@@ -149,7 +175,6 @@ export type Database = {
           shop_id: string;
           client_id: string;
           request_id: string;
-          product: string;
           message: string;
           status: "new" | "pending" | "completed" | "lost";
           photo_path: string | null;

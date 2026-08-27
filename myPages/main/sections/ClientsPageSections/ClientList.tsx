@@ -29,7 +29,7 @@ export function ClientList({ clients, sales }: { clients: Client[]; sales: Sale[
       />
       <div className="grid gap-2">
         {filteredClients.map((client) => (
-          <Card className="p-3" key={client.phone}>
+          <Card className="p-3" key={client.id}>
             <Link
               className="flex items-center gap-3"
               href={`/clients/${client.id}`}

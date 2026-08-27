@@ -36,5 +36,21 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Proxy a déjà vérifié l'utilisateur auprès de Supabase Auth ; on transmet son id
+  // via un header interne pour éviter un second aller-retour réseau identique dans
+  // requireShopWorkspace(). Le header est toujours écrasé ici, donc jamais falsifiable
+  // par le client. La sécurité réelle des données reste portée par les policies RLS
+  // (scopées sur auth.uid() côté base), pas par ce header : il n'est qu'un raccourci
+  // pour éviter un getUser() redondant sur le chemin nominal.
+  if (user) {
+    request.headers.set("x-fillo-user-id", user.id);
+  } else {
+    request.headers.delete("x-fillo-user-id");
+  }
+
+  const refreshedCookies = response.cookies.getAll();
+  response = NextResponse.next({ request: { headers: request.headers } });
+  refreshedCookies.forEach((cookie) => response.cookies.set(cookie));
+
   return { user, response };
 }

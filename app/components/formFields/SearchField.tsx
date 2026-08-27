@@ -21,7 +21,7 @@ export function SearchField({
       <div className="flex min-h-11 items-center rounded-[var(--radius-control)] border border-border bg-surface px-3 focus-within:border-blue">
         <Search aria-hidden="true" className="mr-2 text-ink-muted" size={17} />
         <input
-          className={`min-w-0 flex-1 bg-transparent text-sm text-text outline-none placeholder:text-ink-muted ${className}`}
+          className={`min-w-0 flex-1 bg-transparent text-base text-text outline-none placeholder:text-ink-muted ${className}`}
           id={id}
           type="search"
           {...props}

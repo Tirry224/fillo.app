@@ -91,3 +91,44 @@ export async function updateShopSettingsAction(
   revalidatePath("/reglages");
   return { error: null };
 }
+
+export async function submitShopFeedbackAction(
+  message: string,
+): Promise<ShopActionResult> {
+  const trimmed = message.trim();
+  if (!trimmed) {
+    return { error: null };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "Utilisateur non authentifié." };
+  }
+
+  const { data: memberData } = await supabase
+    .from("shop_members")
+    .select("shop_id")
+    .eq("user_id", user.id)
+    .limit(1)
+    .maybeSingle();
+
+  if (!memberData) {
+    return { error: "Boutique introuvable." };
+  }
+
+  const { error } = await supabase.from("shop_feedback").insert({
+    shop_id: memberData.shop_id,
+    user_id: user.id,
+    message: trimmed,
+  });
+
+  if (error) {
+    return { error: "Impossible d'envoyer ce commentaire." };
+  }
+
+  return { error: null };
+}

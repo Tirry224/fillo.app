@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createSlug } from "@/lib/utils/slug";
@@ -29,20 +30,39 @@ async function ensureShopExists(
  *
  * Mise en cache par requête (React `cache`) : plusieurs appels dans le même
  * rendu (layout + page) ne déclenchent qu'un seul aller-retour Supabase.
+ *
+ * Sur le chemin nominal (utilisateur déjà membre d'une boutique), on réutilise
+ * l'id vérifié par proxy.ts (header interne, jamais falsifiable côté client)
+ * au lieu de rappeler supabase.auth.getUser() : ça évite un second aller-retour
+ * réseau vers Supabase sur chaque navigation. La sécurité réelle vient des
+ * policies RLS scopées sur auth.uid(), pas de cet id ; on retombe donc sur un
+ * getUser() authentifiant dès qu'on a besoin des métadonnées utilisateur
+ * (création de boutique) ou que le header est absent.
  */
 export const requireShopWorkspace = cache(async (): Promise<ShopWorkspace> => {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const trustedUserId = (await headers()).get("x-fillo-user-id");
 
-  if (!user) {
-    redirect("/login");
+  let userId = trustedUserId;
+  if (!userId) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      redirect("/login");
+    }
+    userId = user.id;
   }
 
-  let membership = await fetchMembership(supabase, user.id);
+  let membership = await fetchMembership(supabase, userId);
 
   if (!membership) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      redirect("/login");
+    }
     const shopNameHint = user.user_metadata?.shop_name as string | undefined;
     await ensureShopExists(supabase, shopNameHint);
     membership = await fetchMembership(supabase, user.id);
@@ -96,7 +116,6 @@ export const requireShopWorkspace = cache(async (): Promise<ShopWorkspace> => {
     clientId: s.client_id,
     clientName: s.clients?.name ?? "Client",
     requestId: s.request_id,
-    product: s.product,
     message: s.message,
     status: s.status,
     photo: s.photo_path ?? undefined,

@@ -47,7 +47,7 @@ export function PhoneField({
         <input
           aria-describedby={errorId}
           aria-invalid={Boolean(error)}
-          className={`min-w-0 flex-1 bg-transparent px-3 text-sm text-text outline-none focus-visible:shadow-none placeholder:text-ink-muted ${className}`}
+          className={`min-w-0 flex-1 bg-transparent px-3 text-base text-text outline-none focus-visible:shadow-none placeholder:text-ink-muted ${className}`}
           id={id}
           inputMode="tel"
           onChange={handleChange}

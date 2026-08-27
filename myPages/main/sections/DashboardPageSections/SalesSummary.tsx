@@ -33,7 +33,7 @@ export function SalesSummary({ sales }: { sales: Sale[] }) {
   return (
     <section className="grid gap-3">
       <Typography component="h2" variant="h4">
-        Résumé de vos ventes
+        Résumé des ventes
       </Typography>
       <div className="grid grid-cols-2 gap-3">
         {metrics.map((metric) => (

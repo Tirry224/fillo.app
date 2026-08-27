@@ -12,7 +12,7 @@ export function PublicBrandHeader({ shop }: { shop: PublicShop }) {
           {shop.name}
         </Typography>
         <Typography component="p" variant="caption2">
-          Envoyez votre demande directement au vendeur
+          Remplisser ce formulaire pour votre commande
         </Typography>
       </div>
     </header>

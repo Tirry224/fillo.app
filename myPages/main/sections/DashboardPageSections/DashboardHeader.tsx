@@ -59,7 +59,7 @@ export function DashboardHeader({
   return (
     <header className="-mx-4 -mt-6 grid gap-5 rounded-b-[var(--radius-card)] bg-navy px-4 pb-5 pt-6 text-white sm:-mx-6 sm:-mt-8 sm:px-6">
       <div className="flex items-start justify-between">
-        <div className="grid gap-1">
+        <div className="ml-1 grid gap-1">
           <Typography component="h1" variant="h4" className="text-white">
             {shop.name}
           </Typography>

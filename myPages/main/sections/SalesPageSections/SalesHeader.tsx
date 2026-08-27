@@ -2,7 +2,7 @@ import { Typography } from "@/app/components";
 
 export function SalesHeader() {
   return (
-    <header className="grid gap-1">
+    <header className="ml-1 grid gap-1">
       <Typography component="h1" variant="h2">
         Mes ventes
       </Typography>

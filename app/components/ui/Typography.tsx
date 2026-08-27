@@ -52,7 +52,7 @@ export const uiStyles = {
   controlRadius: "rounded-[var(--radius-control)]",
   cardRadius: "rounded-[var(--radius-card)]",
   cardRadiusResponsive: "sm:rounded-[var(--radius-card)]",
-  field: "min-h-11 px-3 text-sm",
+  field: "min-h-11 px-3 text-base",
   button: "font-bold transition-colors",
   sectionGap: "gap-8",
   formGap: "gap-4",

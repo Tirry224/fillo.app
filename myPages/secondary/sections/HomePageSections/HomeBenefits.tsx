@@ -9,7 +9,7 @@ const benefits = [
 
 export function HomeBenefits() {
   return (
-    <ul className="mt-8 grid gap-4">
+    <ul className="mt-5 grid gap-3">
       {benefits.map((benefit) => (
         <li className="flex items-center gap-3" key={benefit}>
           <span className="flex size-5 shrink-0 items-center justify-center rounded bg-navy text-white">

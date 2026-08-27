@@ -52,7 +52,7 @@ export async function SalesByStatusPage({ status }: { status: string }) {
               <Card className="flex items-center justify-between gap-3 p-3 transition-colors hover:bg-surface-warm">
                 <div className="grid gap-1">
                   <Typography component="h3" variant="caption1">
-                    {sale.product}
+                    {sale.message}
                   </Typography>
                   <Typography component="p" variant="caption2">
                     {sale.clientName}

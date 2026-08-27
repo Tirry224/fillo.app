@@ -26,7 +26,7 @@ export function ImmediateRequest({
         </span>
       </div>
       {pendingRequests.map((request) => (
-        <Link href={`/clients/${request.clientId}`} key={request.clientId}>
+        <Link href={`/clients/${request.clientId}`} key={request.id}>
           <Card className="flex items-center justify-between gap-3 p-3 transition-colors hover:bg-surface-warm">
             <div className="grid gap-1">
               <Typography component="h3" variant="caption1">

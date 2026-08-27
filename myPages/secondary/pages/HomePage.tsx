@@ -9,7 +9,7 @@ export function HomePage() {
   return (
     <Container>
       <BrandHeader />
-      <div className="flex flex-1 flex-col justify-center py-12">
+      <div className="flex flex-1 flex-col justify-center py-4">
         <HomeIntro />
         <HomeProductImages />
         <HomeBenefits />

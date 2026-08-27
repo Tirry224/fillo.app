@@ -1,11 +1,14 @@
 "use client";
 
 import { Typography } from "@/app/components";
+import { submitShopFeedbackAction } from "@/lib/actions/shop";
 import { useEffect, useState, type FormEvent } from "react";
 
 export function SettingsFeedback() {
   const [comment, setComment] = useState("");
   const [commentSent, setCommentSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
     if (!commentSent) return;
@@ -17,8 +20,18 @@ export function SettingsFeedback() {
     return () => window.clearTimeout(timeoutId);
   }, [commentSent]);
 
-  function sendComment() {
-    if (!comment.trim()) return;
+  async function sendComment() {
+    if (!comment.trim() || isSending) return;
+
+    setIsSending(true);
+    setError(null);
+    const result = await submitShopFeedbackAction(comment);
+    setIsSending(false);
+
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
 
     setCommentSent(true);
     setComment("");
@@ -26,7 +39,7 @@ export function SettingsFeedback() {
 
   function handleCommentSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    sendComment();
+    void sendComment();
   }
 
   return (
@@ -34,7 +47,7 @@ export function SettingsFeedback() {
       <Typography
         component="h2"
         variant="caption1"
-        className="text-[16px] uppercase tracking-[0.02em] text-ink-muted"
+        className="ml-1 text-[16px] uppercase tracking-[0.02em] text-ink-muted"
       >
         Un commentaire, une idée ?
       </Typography>
@@ -48,27 +61,40 @@ export function SettingsFeedback() {
           onChange={(event) => {
             setComment(event.target.value);
             setCommentSent(false);
+            setError(null);
           }}
           placeholder="Dites-nous ce qui manque ou ce qui vous gêne dans Fillo..."
           value={comment}
         />
         <button
-          className="mt-5 min-h-14 w-full touch-manipulation rounded-[18px] bg-orange px-4 text-[18px] font-bold text-navy transition-colors hover:bg-[#e99d25] active:bg-[#d88f1d]"
-          onClick={sendComment}
+          className="mt-5 min-h-14 w-full touch-manipulation rounded-[18px] bg-orange px-4 text-[18px] font-bold text-navy transition-colors hover:bg-[#e99d25] active:bg-[#d88f1d] disabled:opacity-60"
+          disabled={isSending || !comment.trim()}
+          onClick={() => void sendComment()}
           type="button"
         >
-          Envoyer
+          {isSending ? "Envoi..." : "Envoyer"}
         </button>
-        <Typography
-          aria-live="polite"
-          component="p"
-          variant="body-sm"
-          className={`mt-3 min-h-[18px] text-center text-green ${
-            commentSent ? "visible" : "invisible"
-          }`}
-        >
-          Merci pour votre retour.
-        </Typography>
+        {error ? (
+          <Typography
+            aria-live="polite"
+            component="p"
+            variant="body-sm"
+            className="mt-3 min-h-[18px] text-center text-[#b33434]"
+          >
+            {error}
+          </Typography>
+        ) : (
+          <Typography
+            aria-live="polite"
+            component="p"
+            variant="body-sm"
+            className={`mt-3 min-h-[18px] text-center text-green ${
+              commentSent ? "visible" : "invisible"
+            }`}
+          >
+            Merci pour votre retour.
+          </Typography>
+        )}
       </form>
     </section>
   );

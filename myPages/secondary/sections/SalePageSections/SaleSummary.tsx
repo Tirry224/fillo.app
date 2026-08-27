@@ -26,7 +26,7 @@ export function SaleSummary({ sale }: { sale: Sale }) {
       {sale.photo ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          alt={`Photo du produit : ${sale.product}`}
+          alt={`Photo du produit : ${sale.message}`}
           className="h-36 w-full rounded-[var(--radius-card)] object-cover"
           src={sale.photo}
         />
@@ -41,8 +41,12 @@ export function SaleSummary({ sale }: { sale: Sale }) {
         <Typography component="p" variant="caption2">
           Client : {sale.clientName}
         </Typography>
-        <Typography component="h1" variant="h3">
-          {sale.product}
+        <Typography
+          component="h1"
+          variant="caption1"
+          className="text-[16px] uppercase tracking-[0.02em] text-ink-muted"
+        >
+          Détail de la vente
         </Typography>
       </div>
       <Card warm className="p-3">

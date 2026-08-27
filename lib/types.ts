@@ -15,7 +15,6 @@ export type Sale = {
   clientId: string;
   clientName: string;
   requestId: string;
-  product: string;
   message: string;
   status: ClientStatus;
   photo?: string;

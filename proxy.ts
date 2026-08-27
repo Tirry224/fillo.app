@@ -13,7 +13,7 @@ function getSafeNextUrl(nextParam: string | null): string | null {
   return nextParam;
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { user, response } = await updateSession(request);
   const pathname = request.nextUrl.pathname;
 

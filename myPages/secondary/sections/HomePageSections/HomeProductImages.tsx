@@ -15,12 +15,12 @@ export function HomeProductImages() {
   return (
     <div
       aria-label="Tissus de la boutique"
-      className="mt-8 grid grid-cols-2 gap-2"
+      className="mt-5 grid grid-cols-2 gap-2"
     >
       {productImages.map((image) => (
         <div
           aria-label={image.label}
-          className="h-36 rounded-[var(--radius-card)] bg-cover bg-center shadow-[var(--shadow-card)]"
+          className="h-24 rounded-[var(--radius-card)] bg-cover bg-center shadow-[var(--shadow-card)]"
           key={image.label}
           role="img"
           style={{ backgroundImage: `url(${image.source})` }}
