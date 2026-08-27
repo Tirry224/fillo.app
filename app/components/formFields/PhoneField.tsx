@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ChangeEvent, type InputHTMLAttributes } from "react";
+import { normalizePhone } from "@/lib/utils/phone";
 
 export type PhoneFieldProps = InputHTMLAttributes<HTMLInputElement> & {
   label?: string;
@@ -66,6 +67,6 @@ export function PhoneField({
 }
 
 function formatPhone(value: string) {
-  const digits = value.replace(/\D/g, "").replace(/^224/, "").slice(0, 9);
+  const digits = normalizePhone(value).replace(/^224/, "").slice(0, 9);
   return digits.replace(/(\d{3})(?=\d)/g, "$1 ").trim();
 }

@@ -14,7 +14,7 @@ export type Database = {
           customer_name: string;
           customer_phone: string;
           request_text: string;
-          request_photo_path?: string | null;
+          request_photos?: string[];
         };
         Returns: Record<string, string>;
       };
@@ -42,6 +42,7 @@ export type Database = {
           location: string | null;
           email: string | null;
           email_notifications: boolean | null;
+          sale_counter: number;
           created_at: string;
         };
         Insert: {
@@ -53,6 +54,7 @@ export type Database = {
           location?: string | null;
           email?: string | null;
           email_notifications?: boolean | null;
+          sale_counter?: number;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["shops"]["Insert"]>;
@@ -142,7 +144,7 @@ export type Database = {
           title: string;
           detail: string;
           message: string;
-          photo_path: string | null;
+          photos: string[];
           created_at: string;
         };
         Insert: Omit<
@@ -177,13 +179,14 @@ export type Database = {
           request_id: string;
           message: string;
           status: "new" | "pending" | "completed" | "lost";
-          photo_path: string | null;
+          photos: string[];
+          sale_number: number;
           created_at: string;
         };
         Insert: Omit<
           Database["public"]["Tables"]["sales"]["Row"],
-          "id" | "created_at"
-        > & { id?: string; created_at?: string };
+          "id" | "created_at" | "sale_number"
+        > & { id?: string; created_at?: string; sale_number?: number };
         Update: Partial<Database["public"]["Tables"]["sales"]["Insert"]>;
         Relationships: [
           {

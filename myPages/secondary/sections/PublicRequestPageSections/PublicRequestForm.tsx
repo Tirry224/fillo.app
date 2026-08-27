@@ -6,14 +6,25 @@ import {
   Card,
   PhotoUpload,
   PhoneField,
+  TextAreaField,
   TextField,
   Typography,
 } from "@/app/components";
+
+function readAsDataUrl(file: File): Promise<string | undefined> {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => resolve(undefined);
+    reader.readAsDataURL(file);
+  });
+}
 
 export function PublicRequestForm({ shopSlug }: { shopSlug: string }) {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formVersion, setFormVersion] = useState(0);
+  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
 
   useEffect(() => {
     if (!sent) {
@@ -32,43 +43,34 @@ export function PublicRequestForm({ shopSlug }: { shopSlug: string }) {
     setError(null);
     const form = event.currentTarget;
     const formData = new FormData(form);
-    const photoFile = formData.get("photo");
+    const photos = (await Promise.all(photoFiles.map(readAsDataUrl))).filter(
+      (photo): photo is string => Boolean(photo),
+    );
 
-    async function submitRequest(photo?: string) {
-      const response = await fetch("/api/requests", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          shopSlug,
-          name: String(formData.get("name") ?? ""),
-          phone: String(formData.get("phone") ?? ""),
-          request: String(formData.get("request") ?? ""),
-          photo,
-        }),
-      });
+    const response = await fetch("/api/requests", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        shopSlug,
+        name: String(formData.get("name") ?? ""),
+        phone: String(formData.get("phone") ?? ""),
+        request: String(formData.get("request") ?? ""),
+        photos,
+      }),
+    });
 
-      if (!response.ok) {
-        const result = (await response.json().catch(() => null)) as {
-          error?: string;
-        } | null;
-        setError(result?.error ?? "Impossible d'envoyer la demande.");
-        return;
-      }
-
-      form.reset();
-      setFormVersion((version) => version + 1);
-      setSent(true);
-    }
-
-    if (photoFile instanceof File && photoFile.size > 0) {
-      const reader = new FileReader();
-      reader.onload = () => void submitRequest(String(reader.result));
-      reader.onerror = () => void submitRequest(undefined);
-      reader.readAsDataURL(photoFile);
+    if (!response.ok) {
+      const result = (await response.json().catch(() => null)) as {
+        error?: string;
+      } | null;
+      setError(result?.error ?? "Impossible d'envoyer la demande.");
       return;
     }
 
-    void submitRequest(undefined);
+    form.reset();
+    setPhotoFiles([]);
+    setFormVersion((version) => version + 1);
+    setSent(true);
   }
 
   return (
@@ -94,13 +96,16 @@ export function PublicRequestForm({ shopSlug }: { shopSlug: string }) {
           placeholder="624 6xx xx xx xx"
           required
         />
-        <TextField
+        <TextAreaField
           label="Que recherchez-vous ?"
           name="request"
           placeholder="Ex. Tissu bazin bleu, 3 pièces"
           required
         />
-        <PhotoUpload label="Photo du produit (optionnel)" name="photo" />
+        <PhotoUpload
+          label="Photos du produit (optionnel, 3 max)"
+          onFilesChange={setPhotoFiles}
+        />
         <Button fullWidth size="lg" type="submit">
           Envoyer ma demande
         </Button>

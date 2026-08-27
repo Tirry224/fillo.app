@@ -32,7 +32,7 @@ export function SaleHeader({ sale }: { sale: Sale }) {
         href="/clients"
       >
         <ArrowLeft aria-hidden="true" size={18} />
-        <span className="text-sm font-bold">Vente #{sale.id}</span>
+        <span className="text-sm font-bold">Vente #FL-{sale.saleNumber}</span>
       </Link>
       <button
         aria-label="Supprimer la vente"

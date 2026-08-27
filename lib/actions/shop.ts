@@ -2,10 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { requireShopContext } from "@/lib/actions/shopContext";
+import { formatAuthError } from "@/lib/utils/authErrors";
 import type { ClientStatus, ShopSettings } from "@/lib/types";
 import type { Database } from "@/lib/supabase/database.types";
 
-export type ShopActionResult = { error: string | null };
+export type ShopActionResult = { error: string | null; info?: string | null };
 
 export async function updateSaleStatusAction(
   saleId: string,
@@ -42,24 +44,27 @@ export async function deleteSaleAction(saleId: string): Promise<ShopActionResult
 export async function updateShopSettingsAction(
   updates: Partial<ShopSettings>,
 ): Promise<ShopActionResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const shopContext = await requireShopContext();
 
-  if (!user) {
-    return { error: "Utilisateur non authentifié." };
+  if (shopContext.error !== null) {
+    return { error: shopContext.error };
   }
 
-  const { data: memberData } = await supabase
-    .from("shop_members")
-    .select("shop_id")
-    .eq("user_id", user.id)
-    .limit(1)
-    .maybeSingle();
+  const { supabase, shopId, userEmail } = shopContext.context;
 
-  if (!memberData) {
-    return { error: "Boutique introuvable." };
+  const trimmedEmail = updates.email?.trim();
+  const isChangingLoginEmail = Boolean(
+    trimmedEmail && trimmedEmail !== userEmail,
+  );
+
+  if (isChangingLoginEmail) {
+    const { error: authError } = await supabase.auth.updateUser({
+      email: trimmedEmail,
+    });
+
+    if (authError) {
+      return { error: formatAuthError(authError.message) };
+    }
   }
 
   const payload: Database["public"]["Tables"]["shops"]["Update"] = {};
@@ -78,18 +83,33 @@ export async function updateShopSettingsAction(
     return { error: null };
   }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("shops")
     .update(payload)
-    .eq("id", memberData.shop_id);
+    .eq("id", shopId)
+    .select("id")
+    .maybeSingle();
 
   if (error) {
     return { error: "Impossible d'enregistrer ces réglages." };
   }
 
+  if (!data) {
+    return {
+      error: "Impossible d'enregistrer ces réglages : boutique introuvable ou accès refusé.",
+    };
+  }
+
   revalidatePath("/dashboard");
   revalidatePath("/reglages");
-  return { error: null };
+  revalidatePath("/reglages/commerce");
+
+  return {
+    error: null,
+    info: isChangingLoginEmail
+      ? "Un email de confirmation a été envoyé à votre nouvelle adresse. Votre email de connexion ne changera qu'après avoir cliqué sur le lien reçu ; utilisez votre ancien email en attendant."
+      : null,
+  };
 }
 
 export async function submitShopFeedbackAction(
@@ -100,29 +120,17 @@ export async function submitShopFeedbackAction(
     return { error: null };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const shopContext = await requireShopContext();
 
-  if (!user) {
-    return { error: "Utilisateur non authentifié." };
+  if (shopContext.error !== null) {
+    return { error: shopContext.error };
   }
 
-  const { data: memberData } = await supabase
-    .from("shop_members")
-    .select("shop_id")
-    .eq("user_id", user.id)
-    .limit(1)
-    .maybeSingle();
-
-  if (!memberData) {
-    return { error: "Boutique introuvable." };
-  }
+  const { supabase, userId, shopId } = shopContext.context;
 
   const { error } = await supabase.from("shop_feedback").insert({
-    shop_id: memberData.shop_id,
-    user_id: user.id,
+    shop_id: shopId,
+    user_id: userId,
     message: trimmed,
   });
 

@@ -1,45 +1,33 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createSlug } from "@/lib/utils/slug";
+import { isSafeRedirectPath } from "@/lib/utils/redirect";
+import { formatAuthError } from "@/lib/utils/authErrors";
 
 export type AuthActionState = {
   error: string | null;
   info?: string | null;
 };
 
-function formatAuthError(message: string): string {
-  if (message.includes("Password should be at least")) {
-    return "Le mot de passe doit contenir au moins 6 caractères.";
-  }
-  if (
-    message.includes("User already registered") ||
-    message.includes("user_already_exists")
-  ) {
-    return "Un compte existe déjà avec cette adresse email.";
-  }
-  if (
-    message.includes("Invalid login credentials") ||
-    message.includes("invalid_credentials")
-  ) {
-    return "Adresse email ou mot de passe incorrect.";
-  }
-  if (message.includes("rate limit")) {
-    return "Trop de tentatives. Veuillez patienter quelques minutes.";
-  }
-  if (message.includes("Email not confirmed")) {
-    return "Merci de confirmer votre adresse email avant de vous connecter (voir l'email envoyé lors de l'inscription).";
-  }
-  return message;
-}
-
 function safeNext(nextValue: FormDataEntryValue | null): string {
   const value = typeof nextValue === "string" ? nextValue : "";
-  if (!value.startsWith("/") || value.startsWith("//") || value.startsWith("/\\")) {
-    return "/dashboard";
-  }
-  return value;
+  return isSafeRedirectPath(value) ? value : "/dashboard";
+}
+
+/**
+ * Origine de la requête en cours (protocole + domaine), déduite des en-têtes
+ * plutôt que d'une valeur soumise par le client : nécessaire pour construire
+ * un lien de réinitialisation de mot de passe valide, quel que soit
+ * l'environnement (développement local, production).
+ */
+async function getRequestOrigin(): Promise<string> {
+  const headersList = await headers();
+  const host = headersList.get("x-forwarded-host") ?? headersList.get("host");
+  const protocol = headersList.get("x-forwarded-proto") ?? "https";
+  return `${protocol}://${host}`;
 }
 
 export async function registerAction(
@@ -156,4 +144,68 @@ export async function updatePasswordAction(
   }
 
   return { error: null, info: "Mot de passe mis à jour avec succès." };
+}
+
+const RESET_REQUEST_INFO =
+  "Si un compte existe avec cette adresse email, un lien de réinitialisation vient de vous être envoyé.";
+
+export async function requestPasswordResetAction(
+  _prevState: AuthActionState,
+  formData: FormData,
+): Promise<AuthActionState> {
+  const email = String(formData.get("email") ?? "").trim();
+
+  if (!email) {
+    return { error: "Merci de saisir votre adresse email." };
+  }
+
+  const supabase = await createClient();
+  const origin = await getRequestOrigin();
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin}/auth/confirm?next=/reinitialiser-mot-de-passe`,
+  });
+
+  // On ne révèle jamais si l'email existe ou non (sécurité), sauf pour un
+  // dépassement de quota d'envoi, utile à signaler sans rien divulguer.
+  if (error?.message.includes("rate limit")) {
+    return { error: formatAuthError(error.message) };
+  }
+
+  return { error: null, info: RESET_REQUEST_INFO };
+}
+
+export async function resetPasswordAction(
+  _prevState: AuthActionState,
+  formData: FormData,
+): Promise<AuthActionState> {
+  const newPassword = String(formData.get("newPassword") ?? "");
+  const confirmPassword = String(formData.get("confirmPassword") ?? "");
+
+  if (!newPassword || newPassword.length < 6) {
+    return { error: "Le mot de passe doit contenir au moins 6 caractères." };
+  }
+  if (newPassword !== confirmPassword) {
+    return { error: "Les deux mots de passe ne correspondent pas." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      error:
+        "Ce lien de réinitialisation n'est plus valide. Merci d'en demander un nouveau.",
+    };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+  if (error) {
+    return { error: formatAuthError(error.message) };
+  }
+
+  await supabase.auth.signOut();
+  redirect("/login?reset=success");
 }

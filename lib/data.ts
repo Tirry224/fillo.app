@@ -107,7 +107,7 @@ export const requireShopWorkspace = cache(async (): Promise<ShopWorkspace> => {
     title: r.title,
     detail: r.detail,
     message: r.message,
-    photo: r.photo_path ?? undefined,
+    photos: r.photos ?? [],
   }));
 
   const sales: Sale[] = (salesData ?? []).map((s) => ({
@@ -118,7 +118,8 @@ export const requireShopWorkspace = cache(async (): Promise<ShopWorkspace> => {
     requestId: s.request_id,
     message: s.message,
     status: s.status,
-    photo: s.photo_path ?? undefined,
+    photos: s.photos ?? [],
+    saleNumber: s.sale_number,
     createdAt: new Date(s.created_at).getTime(),
   }));
 

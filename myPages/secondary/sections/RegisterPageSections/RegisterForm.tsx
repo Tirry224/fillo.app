@@ -5,17 +5,11 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Button, PasswordField, TextField, Typography } from "@/app/components";
 import { registerAction, type AuthActionState } from "@/lib/actions/auth";
+import { isSafeRedirectPath } from "@/lib/utils/redirect";
 
 function getSafeNextUrl(nextParam: string | null): string | null {
   if (!nextParam) return null;
-  if (
-    !nextParam.startsWith("/") ||
-    nextParam.startsWith("//") ||
-    nextParam.startsWith("/\\")
-  ) {
-    return null;
-  }
-  return nextParam;
+  return isSafeRedirectPath(nextParam) ? nextParam : null;
 }
 
 const initialState: AuthActionState = { error: null };

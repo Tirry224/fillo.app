@@ -22,40 +22,11 @@
   --shadow-card: 0 1px 3px rgb(39 52 82 / 8%);
   --shadow-focus: 0 0 0 3px rgb(33 134 212 / 20%);
 
-  /* BrandMark, DashboardHeader and ActiveNavItem */
-  --brand: var(--color-navy);
-  --nav-active: var(--color-navy);
-
-  /* PrimaryButton, SubmitButton and CopyButton */
-  --btn-primary-bg: var(--color-navy);
-  --btn-primary-fg: var(--color-surface);
-  --btn-accent-bg: var(--color-orange);
-  --btn-accent-fg: var(--color-navy);
-  --btn-success-bg: var(--color-green);
-  --btn-success-fg: var(--color-surface);
-
-  /* PageHeading, ClientListItem and SaleSummary */
-  --heading: var(--color-text);
-  --muted: var(--color-ink-muted);
-
-  /* PhoneField, TextField, PasswordField and SearchField */
-  --field-bg: var(--color-surface);
-  --field-border: var(--color-border);
-  --field-focus-border: var(--color-blue);
-
-  /* StatusBadge and StatusSelect */
-  --status-new: var(--color-blue);
-  --status-pending: var(--color-orange);
-  --status-done: var(--color-green);
-  --status-lost: var(--color-grey);
-
-  /* SaleStatusBanner */
-  --sale-start: var(--color-orange);
-  --sale-end: var(--color-coral);
-
-  /* BottomNavigation */
-  --nav-bg: var(--color-surface);
-  --nav-border: var(--color-border);
+  /* Hauteur réelle de BottomNavigation (min-h-[68px] + 1px de bordure haute),
+     hors zone de sécurité bas d'écran (safe-area). Sert à réserver
+     exactement la place nécessaire sous le contenu des pages qui affichent
+     la navigation, sans laisser d'espace vide superflu. */
+  --nav-height: 69px;
 }
 
 @theme inline {
@@ -103,9 +74,14 @@ button {
   cursor: pointer;
 }
 
-:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-focus);
+/* Dans @layer base pour rester surchargeable par les classes Tailwind
+   (couche "utilities") des champs qui gèrent leur propre style de focus,
+   comme PasswordField et PhoneField. */
+@layer base {
+  :focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+  }
 }
 
 /* Neutralise le fond d'auto-remplissage du navigateur qui masque le fond du champ */

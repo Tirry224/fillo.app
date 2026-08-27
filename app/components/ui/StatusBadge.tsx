@@ -1,26 +1,25 @@
 import type { HTMLAttributes } from "react";
+import type { ClientStatus } from "@/lib/types";
 
-const statusStyles = {
+const statusStyles: Record<ClientStatus, string> = {
   new: "bg-[#e8f4ff] text-blue",
-  pending: "bg-[#fff4df] text-[#a86b00]",
+  pending: "bg-[#fff4df] text-orange",
   completed: "bg-[#e8f5e9] text-green",
-  lost: "bg-[#f0efed] text-[#6f7075]",
-} as const;
+  lost: "bg-[#f0efed] text-grey",
+};
 
-const statusLabels = {
+const statusLabels: Record<ClientStatus, string> = {
   new: "Nouvelle",
   pending: "En cours",
   completed: "Complétée",
   lost: "Vente perdue",
-} as const;
-
-type Status = keyof typeof statusStyles;
+};
 
 export type StatusBadgeProps = Omit<
   HTMLAttributes<HTMLSpanElement>,
   "children"
 > & {
-  status: Status;
+  status: ClientStatus;
   label?: string;
 };
 

@@ -37,6 +37,10 @@ export function CommerceEditForm({ settings }: { settings: ShopSettings }) {
       return;
     }
 
+    if (result.info) {
+      window.alert(result.info);
+    }
+
     router.push("/reglages");
     router.refresh();
   }

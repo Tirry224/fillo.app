@@ -26,7 +26,7 @@ export function PasswordField({
         {label}
       </label>
       <div
-        className={`flex min-h-11 items-center rounded-[var(--radius-control)] border border-border bg-surface shadow-sm transition-shadow focus-within:border-blue ${error ? "border-[#c53f3f]" : ""}`}
+        className={`flex min-h-11 items-center rounded-[var(--radius-control)] border border-border bg-surface shadow-sm transition-shadow focus-within:border-blue focus-within:shadow-[var(--shadow-focus)] ${error ? "border-[#c53f3f]" : ""}`}
       >
         <input
           aria-describedby={errorId}

@@ -8,6 +8,39 @@ import { Bell, BellOff, Check } from "lucide-react";
 import { updateShopSettingsAction } from "@/lib/actions/shop";
 import type { Shop } from "@/lib/types";
 
+/**
+ * navigator.clipboard n'existe que dans un contexte sécurisé (HTTPS ou
+ * localhost). Un commerçant qui teste depuis son téléphone sur le réseau
+ * local (http://192.168.x.x, utilisé en développement) tombe dans un
+ * contexte non sécurisé où l'API est absente : on retombe alors sur
+ * document.execCommand, supporté partout, pour que le bouton fonctionne
+ * aussi dans ce cas.
+ */
+async function copyToClipboard(text: string) {
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return;
+    } catch {
+      // On tente le repli ci-dessous plutôt que d'abandonner immédiatement.
+    }
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+  const succeeded = document.execCommand("copy");
+  document.body.removeChild(textarea);
+
+  if (!succeeded) {
+    throw new Error("copy failed");
+  }
+}
+
 export function DashboardHeader({
   shop,
   emailNotifications,
@@ -36,7 +69,7 @@ export function DashboardHeader({
 
   async function handleCopy() {
     try {
-      await navigator.clipboard.writeText(publicUrl);
+      await copyToClipboard(publicUrl);
       setCopyState("copied");
     } catch {
       setCopyState("error");
@@ -127,11 +160,19 @@ export function DashboardHeader({
             )}
           </button>
         </div>
-        <p aria-live="polite" className="sr-only" id="copy-status">
+        <p
+          aria-live="polite"
+          className={
+            copyState === "error"
+              ? "text-xs text-red-300"
+              : "sr-only"
+          }
+          id="copy-status"
+        >
           {copyState === "copied"
             ? "Lien client copié."
             : copyState === "error"
-              ? "Impossible de copier le lien client."
+              ? "Impossible de copier le lien. Sélectionnez et copiez-le manuellement."
               : ""}
         </p>
       </div>

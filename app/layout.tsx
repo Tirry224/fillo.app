@@ -10,7 +10,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="fr">
       <body>
-        <main className="min-h-dvh bg-[#eef0f3] px-0 py-0 md:px-0 md:py-0 lg:px-6 lg:py-10">
+        <main className="bg-[#eef0f3] px-0 py-0 md:px-0 md:py-0 lg:px-6">
           {children}
         </main>
       </body>

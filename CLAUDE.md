@@ -250,3 +250,20 @@ En cas de conflit entre plusieurs choix, respecter cet ordre :
 Fillo est un MVP. La priorité est de construire une application simple, fiable, compréhensible, maintenable, sécurisée, adaptée au contexte réel des commerçants.
 
 Ne pas transformer prématurément Fillo en une architecture complexe destinée à une entreprise de millions d'utilisateurs. Construire uniquement ce qui est nécessaire aujourd'hui, tout en évitant les décisions qui rendraient une évolution raisonnable difficile demain.
+
+---
+
+## 26. Objectif du code produit
+
+Ton objectif est de produire du code :
+
+- simple
+- court
+- maintenable
+- réutilisable
+- cohérent avec l'architecture existante
+- adapté à la taille réelle du problème
+
+Ne pas produire de code volumineux simplement pour donner l'impression d'avoir beaucoup travaillé.
+
+Une petite fonctionnalité doit recevoir une petite solution.

@@ -1,34 +1,186 @@
+"use client";
+
 import Link from "next/link";
-import { Avatar, Button, Typography } from "@/app/components";
+import { useRouter } from "next/navigation";
+import { useState, type FormEvent } from "react";
+import { Avatar, Button, Card, PhoneField, TextField, Typography } from "@/app/components";
+import { deleteClientAction, updateClientAction } from "@/lib/actions/clients";
 import type { Client } from "@/lib/types";
+import { normalizePhone } from "@/lib/utils/phone";
 
 export function ClientProfile({ client }: { client: Client }) {
-  const whatsappNumber = client.phone.replace(/\D/g, "");
+  const router = useRouter();
+  const whatsappNumber = `224${normalizePhone(client.phone)}`;
+
+  const [mode, setMode] = useState<"idle" | "edit" | "delete">("idle");
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function closeDialog() {
+    setMode("idle");
+    setError(null);
+  }
+
+  async function handleEditSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const name = String(formData.get("name") ?? "").trim();
+    const phone = String(formData.get("phone") ?? "").trim();
+
+    if (!name || !phone) {
+      setError("Le nom et le numéro sont obligatoires.");
+      return;
+    }
+
+    setPending(true);
+    setError(null);
+    const result = await updateClientAction(client.id, name, phone);
+    setPending(false);
+
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+
+    setMode("idle");
+    router.refresh();
+  }
+
+  async function handleDeleteConfirm() {
+    setPending(true);
+    setError(null);
+    const result = await deleteClientAction(client.id);
+
+    if (result.error) {
+      setPending(false);
+      setError(result.error);
+      return;
+    }
+
+    router.push("/clients");
+    router.refresh();
+  }
 
   return (
-    <section className="grid justify-items-center gap-3 text-center">
-      <Avatar
-        initials={client.initials}
-        color={client.color}
-        className="size-14 text-xl"
-      />
-      <div className="grid gap-1">
-        <Typography component="h1" variant="h3">
-          {client.name}
-        </Typography>
-        <Typography component="p" variant="caption2">
-          {client.phone}
-        </Typography>
-      </div>
-      <Link
-        className="w-full"
-        href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`Bonjour ${client.name}, je reviens vers vous concernant votre demande.`)}`}
-        target="_blank"
-      >
-        <Button fullWidth variant="success">
-          Discuter sur WhatsApp
-        </Button>
-      </Link>
-    </section>
+    <div className="relative">
+      <section className="grid justify-items-center gap-3 text-center">
+        <Avatar
+          initials={client.initials}
+          color={client.color}
+          className="size-14 text-xl"
+        />
+        <div className="grid gap-1">
+          <Typography component="h1" variant="h3">
+            {client.name}
+          </Typography>
+          <Typography component="p" variant="caption2">
+            {client.phone}
+          </Typography>
+        </div>
+        <Link
+          className="w-full"
+          href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`Bonjour ${client.name}, je reviens vers vous concernant votre demande.`)}`}
+          target="_blank"
+        >
+          <Button fullWidth variant="success">
+            Discuter sur WhatsApp
+          </Button>
+        </Link>
+        <div className="grid w-full grid-cols-2 gap-3">
+          <Button
+            fullWidth
+            variant="secondary"
+            onClick={() => setMode("edit")}
+          >
+            Modifier
+          </Button>
+          <Button fullWidth variant="danger" onClick={() => setMode("delete")}>
+            Supprimer
+          </Button>
+        </div>
+      </section>
+
+      {mode === "edit" ? (
+        <div className="absolute inset-0 z-10 flex items-center justify-center p-4">
+          <Card className="grid w-full max-w-sm gap-4 p-5 shadow-lg" warm>
+            <Typography component="p" variant="h4" className="text-center">
+              Modifier le client
+            </Typography>
+            <form className="grid gap-4" onSubmit={handleEditSubmit}>
+              <TextField
+                defaultValue={client.name}
+                label="Nom complet"
+                name="name"
+                required
+              />
+              <PhoneField
+                defaultValue={client.phone}
+                label="Numéro WhatsApp"
+                name="phone"
+                required
+              />
+              {error ? (
+                <Typography component="p" variant="caption2" className="text-[#b33434]">
+                  {error}
+                </Typography>
+              ) : null}
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  disabled={pending}
+                  onClick={closeDialog}
+                  type="button"
+                  variant="secondary"
+                >
+                  Annuler
+                </Button>
+                <Button disabled={pending} type="submit">
+                  {pending ? "Enregistrement..." : "Enregistrer"}
+                </Button>
+              </div>
+            </form>
+          </Card>
+        </div>
+      ) : null}
+
+      {mode === "delete" ? (
+        <div className="absolute inset-0 z-10 flex items-center justify-center p-4">
+          <Card className="grid w-full max-w-sm gap-3 p-5 text-center shadow-lg" warm>
+            <Typography component="p" variant="h4">
+              Supprimer ce client ?
+            </Typography>
+            <Typography component="p" variant="body-base">
+              {client.name} · {client.phone}
+            </Typography>
+            <Typography component="p" variant="caption2">
+              Cette action est définitive et supprimera aussi tout l&apos;historique
+              de demandes et de ventes de ce client.
+            </Typography>
+            {error ? (
+              <Typography component="p" variant="caption2" className="text-[#b33434]">
+                {error}
+              </Typography>
+            ) : null}
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                disabled={pending}
+                onClick={closeDialog}
+                type="button"
+                variant="secondary"
+              >
+                Annuler
+              </Button>
+              <Button
+                disabled={pending}
+                onClick={handleDeleteConfirm}
+                type="button"
+                variant="danger"
+              >
+                {pending ? "Suppression..." : "Supprimer"}
+              </Button>
+            </div>
+          </Card>
+        </div>
+      ) : null}
+    </div>
   );
 }

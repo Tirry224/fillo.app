@@ -1,13 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
+import { isSafeRedirectPath } from "@/lib/utils/redirect";
 
 function getSafeNextUrl(nextParam: string | null): string | null {
-  if (!nextParam) return null;
-  if (
-    !nextParam.startsWith("/") ||
-    nextParam.startsWith("//") ||
-    nextParam.startsWith("/\\")
-  ) {
+  if (!nextParam || !isSafeRedirectPath(nextParam)) {
     return null;
   }
   return nextParam;

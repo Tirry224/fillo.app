@@ -1,5 +1,8 @@
 export type ClientStatus = "new" | "pending" | "completed" | "lost";
 
+/** Nombre maximum de photos qu'un client peut joindre à une demande. */
+export const MAX_REQUEST_PHOTOS = 3;
+
 export type Client = {
   id: string;
   shopId: string;
@@ -17,7 +20,8 @@ export type Sale = {
   requestId: string;
   message: string;
   status: ClientStatus;
-  photo?: string;
+  photos: string[];
+  saleNumber: number;
   createdAt: number;
 };
 
@@ -28,7 +32,7 @@ export type ClientRequest = {
   title: string;
   detail: string;
   message: string;
-  photo?: string;
+  photos: string[];
 };
 
 export type Shop = {

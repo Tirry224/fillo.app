@@ -8,7 +8,7 @@ const buttonVariants = {
   secondary:
     "border border-border-strong bg-surface text-navy hover:bg-surface-warm",
   danger:
-    "border border-transparent bg-transparent text-[#c53f3f] hover:bg-[#fff3f1]",
+    "border border-[#c53f3f] bg-transparent text-[#c53f3f] hover:bg-[#fff3f1]",
 } as const;
 
 const buttonSizes = {
