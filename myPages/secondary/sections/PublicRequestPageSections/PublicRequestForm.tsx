@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   Button,
@@ -110,7 +111,10 @@ export function PublicRequestForm({ shopSlug }: { shopSlug: string }) {
           Envoyer ma demande
         </Button>
         <Typography component="p" variant="caption2" className="text-center">
-          Votre demande sera envoyée directement à la boutique.
+          Votre demande sera envoyée directement à la boutique.{" "}
+          <Link className="underline" href="/confidentialite">
+            Confidentialité
+          </Link>
         </Typography>
       </form>
 

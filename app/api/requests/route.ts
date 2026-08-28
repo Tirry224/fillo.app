@@ -1,33 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { sendNewRequestNotification } from "@/lib/email/notifications";
+import { isPublicRequestRateLimited } from "@/lib/rateLimit";
 import { MAX_REQUEST_PHOTOS } from "@/lib/types";
-
-/**
- * Limite de débit basique, en mémoire, par IP. Ne protège qu'une seule
- * instance de serveur (pas de partage entre instances en déploiement
- * multi-instance/serverless) : suffisant pour dissuader un abus simple,
- * mais une solution durable (ex. Upstash Redis, Vercel KV) est nécessaire
- * avant une mise à l'échelle en production.
- */
-const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
-const RATE_LIMIT_MAX_REQUESTS = 5;
-const requestTimestampsByIp = new Map<string, number[]>();
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-  const timestamps = (requestTimestampsByIp.get(ip) ?? []).filter(
-    (timestamp) => now - timestamp < RATE_LIMIT_WINDOW_MS,
-  );
-
-  if (timestamps.length >= RATE_LIMIT_MAX_REQUESTS) {
-    requestTimestampsByIp.set(ip, timestamps);
-    return true;
-  }
-
-  timestamps.push(now);
-  requestTimestampsByIp.set(ip, timestamps);
-  return false;
-}
 
 function getClientIp(request: Request): string {
   const forwardedFor = request.headers.get("x-forwarded-for");
@@ -77,7 +52,7 @@ async function uploadRequestPhoto(
 
 export async function POST(request: Request) {
   const ip = getClientIp(request);
-  if (isRateLimited(ip)) {
+  if (await isPublicRequestRateLimited(ip)) {
     return NextResponse.json(
       { error: "Trop de demandes envoyées. Merci de réessayer plus tard." },
       { status: 429 },
@@ -126,7 +101,7 @@ export async function POST(request: Request) {
     )
   ).filter((url): url is string => Boolean(url));
 
-  const { error } = await supabase.rpc("submit_public_request", {
+  const { data: submitResult, error } = await supabase.rpc("submit_public_request", {
     target_shop_slug: body.shopSlug,
     customer_name: body.name,
     customer_phone: body.phone,
@@ -136,6 +111,15 @@ export async function POST(request: Request) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  if (submitResult?.email_notifications && submitResult.shop_email) {
+    await sendNewRequestNotification({
+      shopEmail: submitResult.shop_email,
+      shopName: submitResult.shop_name,
+      clientName: body.name,
+      message: body.request,
+    });
   }
 
   return NextResponse.json({ ok: true }, { status: 201 });

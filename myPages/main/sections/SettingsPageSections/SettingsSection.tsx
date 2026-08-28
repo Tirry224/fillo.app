@@ -3,7 +3,7 @@ import { Typography } from "@/app/components";
 import { ChevronRight, SquarePen } from "lucide-react";
 import type { ReactNode } from "react";
 
-export type SettingRowProps = {
+type SettingRowProps = {
   icon: ReactNode;
   label: string;
   detail: string;

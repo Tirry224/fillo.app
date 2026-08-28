@@ -16,7 +16,13 @@ export type Database = {
           request_text: string;
           request_photos?: string[];
         };
-        Returns: Record<string, string>;
+        Returns: {
+          request_id: string;
+          client_id: string;
+          shop_name: string;
+          shop_email: string | null;
+          email_notifications: boolean;
+        };
       };
       register_shop: {
         Args: {

@@ -12,6 +12,11 @@ export function HomeFooter() {
       <Typography component="p" className="text-center" variant="caption2">
         Gratuit - Inscription en 30 secondes
       </Typography>
+      <Link className="block text-center underline" href="/confidentialite">
+        <Typography component="span" variant="caption2">
+          Confidentialité &amp; mentions légales
+        </Typography>
+      </Link>
     </footer>
   );
 }

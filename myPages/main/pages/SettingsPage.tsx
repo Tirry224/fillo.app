@@ -11,9 +11,7 @@ export async function SettingsPage() {
   const { settings } = await requireShopWorkspace();
 
   return (
-    <Container
-      className={`${uiStyles.sectionGap} pb-[calc(var(--nav-height)+env(safe-area-inset-bottom))]`}
-    >
+    <Container className={uiStyles.sectionGap}>
       <Typography component="h1" variant="h2" className="ml-1 mt-1">
         Réglages
       </Typography>

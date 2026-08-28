@@ -54,6 +54,6 @@ export type ShopSettings = {
   phone: string;
   location: string;
   email: string;
-  /** Nom historique : contrôle en réalité le son de notification à chaque nouvelle demande, pas un email. */
+  /** Active l'envoi d'un email au commerçant pour chaque nouvelle demande client. */
   emailNotifications: boolean;
 };

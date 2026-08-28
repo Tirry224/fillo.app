@@ -35,7 +35,6 @@ const navigationItems = [
 
 export type AppNavigationProps = {
   settingsIncomplete?: boolean;
-  newRequestBadge?: boolean;
 };
 
 function withDot(icon: ReactNode) {
@@ -49,16 +48,13 @@ function withDot(icon: ReactNode) {
 
 export function AppNavigation({
   settingsIncomplete = false,
-  newRequestBadge = false,
 }: AppNavigationProps) {
   const pathname = usePathname();
 
   return (
     <BottomNavigation
       items={navigationItems.map((item) => {
-        const showDot =
-          (item.href === "/reglages" && settingsIncomplete) ||
-          (item.href === "/dashboard" && newRequestBadge);
+        const showDot = item.href === "/reglages" && settingsIncomplete;
 
         return {
           ...item,

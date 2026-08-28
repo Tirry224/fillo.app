@@ -53,7 +53,11 @@ export function DashboardHeader({
   );
   const [pending, startTransition] = useTransition();
   const router = useRouter();
-  const publicUrl = `https://fillo.app/${shop.slug}`;
+  const siteUrl = (
+    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
+  ).replace(/\/$/, "");
+  const publicUrl = `${siteUrl}/${shop.slug}`;
+  const publicUrlDisplay = `${siteUrl.replace(/^https?:\/\//, "")}/${shop.slug}`;
 
   useEffect(() => {
     if (copyState === "idle") {
@@ -140,7 +144,7 @@ export function DashboardHeader({
               variant="caption1"
               className="text-white underline"
             >
-              fillo.app/{shop.slug}
+              {publicUrlDisplay}
             </Typography>
           </Link>
           <button

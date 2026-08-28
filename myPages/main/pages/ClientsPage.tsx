@@ -7,7 +7,7 @@ export async function ClientsPage() {
   const { clients, sales } = await requireShopWorkspace();
 
   return (
-    <Container className="gap-8 pb-[calc(var(--nav-height)+env(safe-area-inset-bottom))]">
+    <Container className="gap-8">
       <ClientsHeader clientCount={clients.length} />
       <ClientList clients={clients} sales={sales} />
     </Container>

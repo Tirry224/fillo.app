@@ -8,7 +8,7 @@ export async function SalesPage() {
   const { sales } = await requireShopWorkspace();
 
   return (
-    <Container className="gap-8 pb-[calc(var(--nav-height)+env(safe-area-inset-bottom))]">
+    <Container className="gap-8">
       <SalesHeader />
       <SalesStats sales={sales} />
       <SalesEvolution sales={sales} />
