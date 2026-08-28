@@ -23,6 +23,8 @@ export { Card } from "./ui/Card";
 export type { CardProps } from "./ui/Card";
 export { Container } from "./ui/Container";
 export type { ContainerProps } from "./ui/Container";
+export { MainShell } from "./ui/MainShell";
+export type { MainShellProps } from "./ui/MainShell";
 export { PhotoGallery } from "./ui/PhotoGallery";
 export type { PhotoGalleryProps } from "./ui/PhotoGallery";
 export { Skeleton } from "./ui/Skeleton";

@@ -54,5 +54,6 @@ export type ShopSettings = {
   phone: string;
   location: string;
   email: string;
+  /** Nom historique : contrôle en réalité le son de notification à chaque nouvelle demande, pas un email. */
   emailNotifications: boolean;
 };

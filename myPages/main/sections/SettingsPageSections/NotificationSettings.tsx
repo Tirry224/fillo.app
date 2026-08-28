@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Mail } from "lucide-react";
+import { Volume2 } from "lucide-react";
 import { updateShopSettingsAction } from "@/lib/actions/shop";
 import { SettingRow, SettingsGroup } from "./SettingsSection";
 
@@ -26,9 +26,9 @@ export function NotificationSettings({ enabled }: { enabled: boolean }) {
   return (
     <SettingsGroup title="Notifications">
       <SettingRow
-        detail="Aucune adresse configurée"
-        icon={<Mail size={27} strokeWidth={1.8} />}
-        label="Email à chaque nouvelle demande"
+        detail="Joue un son quand une nouvelle demande arrive (app ouverte)"
+        icon={<Volume2 size={27} strokeWidth={1.8} />}
+        label="Son à chaque nouvelle demande"
         trailing={
           <span
             aria-hidden="true"
