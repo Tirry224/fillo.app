@@ -55,7 +55,6 @@ export async function addClientAction(
         phone: trimmedPhone,
         normalized_phone: normalizedPhone,
         initials,
-        color: "blue",
       })
       .select("id")
       .single();

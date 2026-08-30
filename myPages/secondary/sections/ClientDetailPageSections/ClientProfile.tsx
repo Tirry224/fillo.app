@@ -5,12 +5,20 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Avatar, Button, Card, PhoneField, TextField, Typography } from "@/app/components";
 import { deleteClientAction, updateClientAction } from "@/lib/actions/clients";
-import type { Client } from "@/lib/types";
+import type { Client, Sale } from "@/lib/types";
+import { getClientStatus } from "@/lib/utils/clientStatus";
 import { normalizePhone } from "@/lib/utils/phone";
 
-export function ClientProfile({ client }: { client: Client }) {
+export function ClientProfile({
+  client,
+  sales,
+}: {
+  client: Client;
+  sales: Sale[];
+}) {
   const router = useRouter();
   const whatsappNumber = `224${normalizePhone(client.phone)}`;
+  const status = getClientStatus(client.id, sales);
 
   const [mode, setMode] = useState<"idle" | "edit" | "delete">("idle");
   const [pending, setPending] = useState(false);
@@ -66,7 +74,7 @@ export function ClientProfile({ client }: { client: Client }) {
       <section className="grid justify-items-center gap-3 text-center">
         <Avatar
           initials={client.initials}
-          color={client.color}
+          status={status}
           className="size-14 text-xl"
         />
         <div className="grid gap-1">

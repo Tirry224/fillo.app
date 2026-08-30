@@ -124,7 +124,6 @@ export type Database = {
           name: string;
           phone: string;
           normalized_phone: string;
-          color: "blue" | "orange" | "green";
           created_at: string;
         };
         Insert: Omit<

@@ -1,19 +1,6 @@
 import type { HTMLAttributes } from "react";
 import type { ClientStatus } from "@/lib/types";
-
-const statusStyles: Record<ClientStatus, string> = {
-  new: "bg-[#e8f4ff] text-blue",
-  pending: "bg-[#fff4df] text-orange",
-  completed: "bg-[#e8f5e9] text-green",
-  lost: "bg-[#f0efed] text-grey",
-};
-
-const statusLabels: Record<ClientStatus, string> = {
-  new: "Nouvelle",
-  pending: "En cours",
-  completed: "Complétée",
-  lost: "Vente perdue",
-};
+import { statusLabels, statusStyles } from "./statusStyles";
 
 export type StatusBadgeProps = Omit<
   HTMLAttributes<HTMLSpanElement>,

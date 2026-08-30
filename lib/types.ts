@@ -8,14 +8,13 @@ export type ClientStatus = "new" | "pending" | "completed" | "lost";
 /** Nombre maximum de photos qu'un client peut joindre à une demande. */
 export const MAX_REQUEST_PHOTOS = 3;
 
-/** Fiche client d'une boutique. `color` fixe la couleur de son avatar (initiales) dans les listes. */
+/** Fiche client d'une boutique. */
 export type Client = {
   id: string;
   shopId: string;
   initials: string;
   name: string;
   phone: string;
-  color: "blue" | "orange" | "green";
 };
 
 /**

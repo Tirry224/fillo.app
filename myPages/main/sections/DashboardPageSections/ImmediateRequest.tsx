@@ -11,8 +11,8 @@ export function ImmediateRequest({
 }) {
   const pendingRequests = requests.filter(
     (request) =>
-      sales.find((sale) => sale.requestId === request.id)?.status !==
-      "completed",
+      (sales.find((sale) => sale.requestId === request.id)?.status ?? "new") ===
+      "new",
   );
 
   return (

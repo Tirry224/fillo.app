@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireShopContext } from "@/lib/actions/shopContext";
 import { formatAuthError } from "@/lib/utils/authErrors";
+import { getRequestOrigin } from "@/lib/utils/origin";
 import type { ClientStatus, ShopSettings } from "@/lib/types";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -80,9 +81,16 @@ export async function updateShopSettingsAction(
   );
 
   if (isChangingLoginEmail) {
-    const { error: authError } = await supabase.auth.updateUser({
-      email: trimmedEmail,
-    });
+    // Sans `emailRedirectTo` explicite, le lien de confirmation envoyé par
+    // Supabase retombe sur le comportement par défaut du projet (souvent la
+    // page de réinitialisation de mot de passe, non pertinente ici) : on
+    // pointe donc vers `/auth/confirm`, qui échange le jeton reçu contre une
+    // session avant de renvoyer vers les réglages du commerce.
+    const origin = await getRequestOrigin();
+    const { error: authError } = await supabase.auth.updateUser(
+      { email: trimmedEmail },
+      { emailRedirectTo: `${origin}/auth/confirm?next=/reglages/commerce` },
+    );
 
     if (authError) {
       return { error: formatAuthError(authError.message) };

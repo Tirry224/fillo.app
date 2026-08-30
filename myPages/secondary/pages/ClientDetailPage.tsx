@@ -37,7 +37,7 @@ export async function ClientDetailPage({ clientId }: { clientId: string }) {
         <ArrowLeft aria-hidden="true" size={18} />
         <span className="text-sm font-bold">Fiche client</span>
       </Link>
-      <ClientProfile client={client} />
+      <ClientProfile client={client} sales={sales} />
       <RequestHistory clientId={client.id} requests={requests} sales={sales} />
     </Container>
   );

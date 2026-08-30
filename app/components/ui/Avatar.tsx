@@ -1,28 +1,23 @@
 import type { HTMLAttributes } from "react";
-
-const avatarColors = {
-  blue: "bg-[#e5f2fb] text-navy",
-  orange: "bg-[#fff1d8] text-[#9a5d00]",
-  green: "bg-[#e6f4e7] text-green",
-} as const;
-
-type AvatarColor = keyof typeof avatarColors;
+import type { ClientStatus } from "@/lib/types";
+import { statusStyles } from "./statusStyles";
 
 export type AvatarProps = HTMLAttributes<HTMLDivElement> & {
   initials: string;
-  color?: AvatarColor;
+  /** Statut de la commande la plus pertinente du client : l'avatar reprend la même couleur que son StatusBadge, pour rester cohérent partout dans l'app. */
+  status?: ClientStatus;
 };
 
 export function Avatar({
   initials,
-  color = "blue",
+  status = "new",
   className = "",
   ...props
 }: AvatarProps) {
   return (
     <div
       aria-label={`Avatar de ${initials}`}
-      className={`flex size-10 shrink-0 items-center justify-center rounded-[var(--radius-control)] font-display text-base font-bold ${avatarColors[color]} ${className}`}
+      className={`flex size-10 shrink-0 items-center justify-center rounded-[var(--radius-control)] font-display text-base font-bold ${statusStyles[status]} ${className}`}
       role="img"
       {...props}
     >

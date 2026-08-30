@@ -10,6 +10,7 @@ export function CommerceEditForm({ settings }: { settings: ShopSettings }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -22,6 +23,7 @@ export function CommerceEditForm({ settings }: { settings: ShopSettings }) {
     }
 
     setError(null);
+    setInfo(null);
     setPending(true);
 
     const result = await updateShopSettingsAction({
@@ -31,14 +33,19 @@ export function CommerceEditForm({ settings }: { settings: ShopSettings }) {
       email: String(formData.get("email") ?? "").trim(),
     });
 
+    setPending(false);
+
     if (result.error) {
-      setPending(false);
       setError(result.error);
       return;
     }
 
     if (result.info) {
-      window.alert(result.info);
+      // Un changement d'email attend une confirmation par lien : on reste sur
+      // la page pour que le message reste visible plutôt que de naviguer
+      // immédiatement, ce qui le ferait disparaître avant d'être lu.
+      setInfo(result.info);
+      return;
     }
 
     router.push("/reglages");
@@ -72,6 +79,11 @@ export function CommerceEditForm({ settings }: { settings: ShopSettings }) {
       {error ? (
         <Typography component="p" variant="caption2" className="text-[#b33434]">
           {error}
+        </Typography>
+      ) : null}
+      {info ? (
+        <Typography component="p" variant="caption2" className="text-green">
+          {info}
         </Typography>
       ) : null}
       <Button disabled={pending} fullWidth size="lg" type="submit">

@@ -103,7 +103,6 @@ export const requireShopWorkspace = cache(async (): Promise<ShopWorkspace> => {
     initials: c.initials,
     name: c.name,
     phone: c.phone,
-    color: c.color,
   }));
 
   const requests: ClientRequest[] = (requestsData ?? []).map((r) => ({

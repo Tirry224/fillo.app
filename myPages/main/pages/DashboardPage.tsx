@@ -1,5 +1,6 @@
 import { Container } from "@/app/components";
 import { DashboardHeader } from "@/myPages/main/sections/DashboardPageSections/DashboardHeader";
+import { DashboardRealtimeRefresh } from "@/myPages/main/sections/DashboardPageSections/DashboardRealtimeRefresh";
 import { ImmediateRequest } from "@/myPages/main/sections/DashboardPageSections/ImmediateRequest";
 import { SalesSummary } from "@/myPages/main/sections/DashboardPageSections/SalesSummary";
 import { requireShopWorkspace } from "@/lib/data";
@@ -11,6 +12,7 @@ export async function DashboardPage() {
 
   return (
     <Container>
+      <DashboardRealtimeRefresh shopId={shop.id} />
       <DashboardHeader
         shop={shop}
         emailNotifications={settings.emailNotifications}
