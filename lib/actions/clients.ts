@@ -6,6 +6,14 @@ import { normalizePhone } from "@/lib/utils/phone";
 
 export type AddClientResult = { error: string | null; clientId?: string };
 
+/**
+ * Ajoute un client manuellement depuis l'espace commerçant (formulaire
+ * "Nouveau client"), avec sa première demande. Si un client existant a déjà
+ * le même numéro de téléphone (normalisé), la nouvelle demande lui est
+ * rattachée au lieu de créer un doublon. Crée aussi une vente au statut
+ * "new" pour que la demande apparaisse immédiatement dans le suivi des
+ * ventes, comme une demande reçue via la page publique.
+ */
 export async function addClientAction(
   name: string,
   phone: string,
@@ -98,6 +106,11 @@ export async function addClientAction(
 
 export type UpdateClientResult = { error: string | null };
 
+/**
+ * Modifie le nom et le téléphone d'un client existant. Refuse la mise à jour
+ * si un autre client de la même boutique utilise déjà ce numéro (normalisé),
+ * pour éviter que deux fiches distinctes partagent le même contact.
+ */
 export async function updateClientAction(
   clientId: string,
   name: string,
@@ -156,6 +169,11 @@ export async function updateClientAction(
 
 export type DeleteClientResult = { error: string | null };
 
+/**
+ * Supprime un client. Le filtre `eq("shop_id", shopId)` empêche un
+ * commerçant de supprimer la fiche d'un client appartenant à une autre
+ * boutique, même s'il en devinait l'identifiant.
+ */
 export async function deleteClientAction(
   clientId: string,
 ): Promise<DeleteClientResult> {

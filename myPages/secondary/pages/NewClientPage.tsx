@@ -14,7 +14,7 @@ export function NewClientPage() {
         <ArrowLeft aria-hidden="true" size={18} />
         <span className="text-sm font-bold">Nouveau client</span>
       </Link>
-      <Typography component="p" variant="caption2">
+      <Typography component="p" variant="caption2" className="text-center">
         Ajoutez un client manuellement, par exemple s&apos;il vous contacte en dehors de Fillo.
       </Typography>
       <NewClientForm />

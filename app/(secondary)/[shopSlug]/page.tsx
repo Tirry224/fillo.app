@@ -1,6 +1,29 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PublicRequestPage } from "@/myPages/secondary/pages/PublicRequestPage";
-import { createClient } from "@/lib/supabase/server";
+import { getPublicShop } from "@/lib/data";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ shopSlug: string }>;
+}): Promise<Metadata> {
+  const { shopSlug } = await params;
+  const shop = await getPublicShop(shopSlug);
+
+  if (!shop) {
+    return {};
+  }
+
+  const title = `${shop.name} sur Fillo`;
+  const description = `Envoyez votre demande directement à ${shop.name}`;
+
+  return {
+    title,
+    description,
+    openGraph: { title, description },
+  };
+}
 
 export default async function PublicRequestRoute({
   params,
@@ -8,19 +31,11 @@ export default async function PublicRequestRoute({
   params: Promise<{ shopSlug: string }>;
 }) {
   const { shopSlug } = await params;
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc("get_public_shop", {
-    shop_slug: shopSlug,
-  });
+  const shop = await getPublicShop(shopSlug);
 
-  const shopInfo = data?.[0];
-  if (error || !shopInfo) {
+  if (!shop) {
     notFound();
   }
 
-  return (
-    <PublicRequestPage
-      shop={{ slug: shopSlug, name: shopInfo.name, initial: shopInfo.initial }}
-    />
-  );
+  return <PublicRequestPage shop={shop} />;
 }

@@ -9,6 +9,14 @@ import type { Database } from "@/lib/supabase/database.types";
 
 export type ShopActionResult = { error: string | null; info?: string | null };
 
+/**
+ * Change le statut d'une vente (ex. "new" -> "pending" -> "completed").
+ * Ne vérifie pas explicitement que la vente appartient à la boutique de
+ * l'utilisateur connecté : la policy RLS "members can write sales" (voir
+ * supabase/migrations/001_initial_schema.sql) l'impose déjà au niveau de la
+ * base, donc une vente d'une autre boutique est refusée par Postgres avant
+ * même d'atteindre cette fonction.
+ */
 export async function updateSaleStatusAction(
   saleId: string,
   status: ClientStatus,
@@ -27,6 +35,11 @@ export async function updateSaleStatusAction(
   return { error: null };
 }
 
+/**
+ * Supprime définitivement une vente. Même remarque que pour
+ * `updateSaleStatusAction` : la sécurité vient de la policy RLS sur la table
+ * `sales`, pas d'une vérification explicite ici.
+ */
 export async function deleteSaleAction(saleId: string): Promise<ShopActionResult> {
   const supabase = await createClient();
   const { error } = await supabase.from("sales").delete().eq("id", saleId);
@@ -41,6 +54,15 @@ export async function deleteSaleAction(saleId: string): Promise<ShopActionResult
   return { error: null };
 }
 
+/**
+ * Met à jour les réglages de la boutique (nom, téléphone, adresse, email,
+ * préférence de notifications). Ne construit que les champs réellement
+ * fournis dans `updates`, pour ne jamais écraser les autres colonnes avec
+ * `undefined`. Si l'email de connexion change, Supabase Auth envoie un email
+ * de confirmation et l'ancien email reste actif tant qu'il n'est pas
+ * confirmé : l'utilisateur en est informé via `info` plutôt que par une
+ * fausse impression de succès immédiat.
+ */
 export async function updateShopSettingsAction(
   updates: Partial<ShopSettings>,
 ): Promise<ShopActionResult> {
@@ -112,6 +134,11 @@ export async function updateShopSettingsAction(
   };
 }
 
+/**
+ * Enregistre un message de feedback envoyé par le commerçant depuis
+ * l'application. Un message vide n'est pas considéré comme une erreur : le
+ * formulaire appelant peut soumettre silencieusement un champ resté vide.
+ */
 export async function submitShopFeedbackAction(
   message: string,
 ): Promise<ShopActionResult> {

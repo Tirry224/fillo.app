@@ -88,7 +88,7 @@ export function PublicRequestForm({ shopSlug }: { shopSlug: string }) {
         <TextField
           label="Votre nom complet"
           name="name"
-          placeholder="Ex. Mariam Camara"
+          placeholder="Entrez votre nom complet"
           required
         />
         <PhoneField

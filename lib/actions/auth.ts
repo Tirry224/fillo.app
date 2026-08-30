@@ -1,35 +1,36 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createSlug } from "@/lib/utils/slug";
 import { isSafeRedirectPath } from "@/lib/utils/redirect";
 import { formatAuthError } from "@/lib/utils/authErrors";
+import { getRequestOrigin } from "@/lib/utils/origin";
 
 export type AuthActionState = {
   error: string | null;
   info?: string | null;
 };
 
+/**
+ * Lit le champ caché "next" d'un formulaire d'auth et ne le garde que s'il
+ * pointe vers une page interne (voir `isSafeRedirectPath`), pour empêcher
+ * qu'un lien piégé redirige l'utilisateur vers un site externe après
+ * connexion/inscription (open redirect). Par défaut, direction "/dashboard".
+ */
 function safeNext(nextValue: FormDataEntryValue | null): string {
   const value = typeof nextValue === "string" ? nextValue : "";
   return isSafeRedirectPath(value) ? value : "/dashboard";
 }
 
 /**
- * Origine de la requête en cours (protocole + domaine), déduite des en-têtes
- * plutôt que d'une valeur soumise par le client : nécessaire pour construire
- * un lien de réinitialisation de mot de passe valide, quel que soit
- * l'environnement (développement local, production).
+ * Crée un compte commerçant : inscription Supabase Auth puis création de la
+ * boutique (RPC `register_shop`, qui génère aussi le slug de l'URL
+ * publique). Si la confirmation d'email est activée côté Supabase,
+ * `data.session` est absent juste après `signUp` : on arrête alors ici avec
+ * un message d'attente, et la boutique sera créée à la première visite
+ * authentifiée (voir `ensureShopExists` dans `lib/data.ts`) plutôt qu'ici.
  */
-async function getRequestOrigin(): Promise<string> {
-  const headersList = await headers();
-  const host = headersList.get("x-forwarded-host") ?? headersList.get("host");
-  const protocol = headersList.get("x-forwarded-proto") ?? "https";
-  return `${protocol}://${host}`;
-}
-
 export async function registerAction(
   _prevState: AuthActionState,
   formData: FormData,
@@ -77,6 +78,7 @@ export async function registerAction(
   redirect(next);
 }
 
+/** Connecte un commerçant existant par email/mot de passe et le redirige vers `next` (ou "/dashboard"). */
 export async function loginAction(
   _prevState: AuthActionState,
   formData: FormData,
@@ -99,12 +101,19 @@ export async function loginAction(
   redirect(next);
 }
 
+/** Déconnecte l'utilisateur courant et le renvoie vers la page de connexion. */
 export async function logoutAction() {
   const supabase = await createClient();
   await supabase.auth.signOut();
   redirect("/login");
 }
 
+/**
+ * Change le mot de passe depuis les réglages, en exigeant l'ancien mot de
+ * passe (`signInWithPassword` sert ici uniquement à le vérifier, pas à créer
+ * une nouvelle session) : ça empêche quelqu'un qui trouverait un appareil
+ * déjà connecté de changer le mot de passe sans le connaître.
+ */
 export async function updatePasswordAction(
   _prevState: AuthActionState,
   formData: FormData,
@@ -149,6 +158,13 @@ export async function updatePasswordAction(
 const RESET_REQUEST_INFO =
   "Si un compte existe avec cette adresse email, un lien de réinitialisation vient de vous être envoyé.";
 
+/**
+ * Envoie un email de réinitialisation de mot de passe. Renvoie toujours le
+ * même message de succès générique que l'email existe ou non (pour ne pas
+ * révéler quelles adresses ont un compte), sauf en cas de dépassement du
+ * quota d'envoi Supabase, seul cas où l'on informe l'utilisateur du problème
+ * réel sans rien divulguer sur l'existence du compte.
+ */
 export async function requestPasswordResetAction(
   _prevState: AuthActionState,
   formData: FormData,
@@ -174,6 +190,13 @@ export async function requestPasswordResetAction(
   return { error: null, info: RESET_REQUEST_INFO };
 }
 
+/**
+ * Définit le nouveau mot de passe après un clic sur le lien reçu par email.
+ * `supabase.auth.getUser()` ne renvoie un utilisateur que si le lien de
+ * réinitialisation a bien établi une session temporaire ; sans utilisateur,
+ * le lien est expiré ou invalide. Déconnecte ensuite l'utilisateur pour
+ * qu'il se reconnecte avec son nouveau mot de passe.
+ */
 export async function resetPasswordAction(
   _prevState: AuthActionState,
   formData: FormData,

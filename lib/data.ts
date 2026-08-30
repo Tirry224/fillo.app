@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createSlug } from "@/lib/utils/slug";
-import type { Client, ClientRequest, Sale, Shop, ShopSettings } from "@/lib/types";
+import type { Client, ClientRequest, PublicShop, Sale, Shop, ShopSettings } from "@/lib/types";
 
 export type ShopWorkspace = {
   shop: Shop;
@@ -13,6 +13,12 @@ export type ShopWorkspace = {
   sales: Sale[];
 };
 
+/**
+ * Crée la boutique d'un utilisateur qui n'en a pas encore, à partir du nom
+ * saisi lors de l'inscription (stocké dans les métadonnées Supabase Auth).
+ * Rattrape le cas où `registerAction` s'est arrêtée avant de créer la
+ * boutique (confirmation d'email en attente au moment de l'inscription).
+ */
 async function ensureShopExists(
   supabase: Awaited<ReturnType<typeof createClient>>,
   shopNameHint: string | undefined,
@@ -143,6 +149,34 @@ export const requireShopWorkspace = cache(async (): Promise<ShopWorkspace> => {
   };
 });
 
+/**
+ * Charge les infos publiques d'une boutique par son slug (page cliente + ses
+ * métadonnées de partage). Mise en cache par requête : la page et
+ * `generateMetadata` appellent toutes les deux cette fonction pour le même
+ * rendu, ça évite un second aller-retour Supabase identique.
+ */
+export const getPublicShop = cache(
+  async (shopSlug: string): Promise<PublicShop | null> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("get_public_shop", {
+      shop_slug: shopSlug,
+    });
+
+    const shopInfo = data?.[0];
+    if (error || !shopInfo) {
+      return null;
+    }
+
+    return { slug: shopSlug, name: shopInfo.name, initial: shopInfo.initial };
+  },
+);
+
+/**
+ * Retrouve la boutique dont `userId` est membre, avec tous ses champs. La
+ * policy RLS de `shop_members` garantit qu'un utilisateur ne peut lire que
+ * sa propre ligne d'appartenance, donc `null` signifie ici "cet utilisateur
+ * n'a encore aucune boutique" plutôt qu'un problème d'accès.
+ */
 async function fetchMembership(
   supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,

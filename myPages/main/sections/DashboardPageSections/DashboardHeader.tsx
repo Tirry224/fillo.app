@@ -44,18 +44,17 @@ async function copyToClipboard(text: string) {
 export function DashboardHeader({
   shop,
   emailNotifications,
+  siteUrl,
 }: {
   shop: Shop;
   emailNotifications: boolean;
+  siteUrl: string;
 }) {
   const [copyState, setCopyState] = useState<"idle" | "copied" | "error">(
     "idle",
   );
   const [pending, startTransition] = useTransition();
   const router = useRouter();
-  const siteUrl = (
-    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
-  ).replace(/\/$/, "");
   const publicUrl = `${siteUrl}/${shop.slug}`;
   const publicUrlDisplay = `${siteUrl.replace(/^https?:\/\//, "")}/${shop.slug}`;
 
@@ -135,9 +134,11 @@ export function DashboardHeader({
         </Typography>
         <div className="flex items-center justify-between gap-3">
           <Link
-            aria-label="Ouvrir le formulaire public de la boutique"
+            aria-label="Ouvrir le formulaire public de la boutique (nouvel onglet)"
             className="min-w-0 truncate"
             href={`/${shop.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
           >
             <Typography
               component="span"

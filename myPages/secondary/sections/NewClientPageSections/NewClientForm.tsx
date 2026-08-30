@@ -71,7 +71,7 @@ export function NewClientForm() {
         <TextField
           label="Nom complet"
           name="name"
-          placeholder="Ex. Mariam Camara"
+          placeholder="Entrez le nom du client"
           required
         />
         <PhoneField
