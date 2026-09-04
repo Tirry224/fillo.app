@@ -70,6 +70,33 @@ export type PublicShop = {
   initial: string;
 };
 
+/** Conversation entre un client et une boutique, vue côté client. */
+export type ClientConversation = {
+  id: string;
+  shopName: string;
+  shopInitial: string;
+  lastMessageAt: number | null;
+};
+
+/** Message texte d'une conversation. */
+export type Message = {
+  id: string;
+  conversationId: string;
+  senderRole: "shop" | "client";
+  body: string;
+  createdAt: number;
+};
+
+/** Conversation entre une boutique et un de ses clients, vue côté commerçant. */
+export type ShopConversation = {
+  id: string;
+  clientId: string;
+  clientName: string;
+  clientInitials: string;
+  lastMessageAt: number | null;
+  unread: boolean;
+};
+
 /** Réglages modifiables par le commerçant depuis la page Réglages. `email` est aussi l'email de connexion au compte. */
 export type ShopSettings = {
   shopName: string;

@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { BottomNavigation } from "./BottomNavigation";
 import {
   LayoutDashboard,
+  MessageCircle,
   Settings,
   ShoppingBag,
   UsersRound,
@@ -25,6 +26,11 @@ const navigationItems = [
     label: "Ventes",
     href: "/ventes",
     icon: <ShoppingBag size={18} strokeWidth={1.8} />,
+  },
+  {
+    label: "Messagerie",
+    href: "/messagerie",
+    icon: <MessageCircle size={18} strokeWidth={1.8} />,
   },
   {
     label: "Réglages",

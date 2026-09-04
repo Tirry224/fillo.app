@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Button,
   Card,
@@ -11,6 +11,7 @@ import {
   TextField,
   Typography,
 } from "@/app/components";
+import { StartConversationPopup } from "./StartConversationPopup";
 
 function readAsDataUrl(file: File): Promise<string | undefined> {
   return new Promise((resolve) => {
@@ -26,24 +27,20 @@ export function PublicRequestForm({ shopSlug }: { shopSlug: string }) {
   const [error, setError] = useState<string | null>(null);
   const [formVersion, setFormVersion] = useState(0);
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
-
-  useEffect(() => {
-    if (!sent) {
-      return;
-    }
-
-    const resetTimer = window.setTimeout(() => {
-      setSent(false);
-    }, 5000);
-
-    return () => window.clearTimeout(resetTimer);
-  }, [sent]);
+  const [submittedClient, setSubmittedClient] = useState<{
+    clientId: string;
+    phone: string;
+    request: string;
+  } | null>(null);
+  const [showConversationPopup, setShowConversationPopup] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
     const form = event.currentTarget;
     const formData = new FormData(form);
+    const phone = String(formData.get("phone") ?? "");
+    const request = String(formData.get("request") ?? "");
     const photos = (await Promise.all(photoFiles.map(readAsDataUrl))).filter(
       (photo): photo is string => Boolean(photo),
     );
@@ -54,8 +51,8 @@ export function PublicRequestForm({ shopSlug }: { shopSlug: string }) {
       body: JSON.stringify({
         shopSlug,
         name: String(formData.get("name") ?? ""),
-        phone: String(formData.get("phone") ?? ""),
-        request: String(formData.get("request") ?? ""),
+        phone,
+        request,
         photos,
       }),
     });
@@ -68,10 +65,13 @@ export function PublicRequestForm({ shopSlug }: { shopSlug: string }) {
       return;
     }
 
+    const result = (await response.json()) as { clientId: string };
     form.reset();
     setPhotoFiles([]);
     setFormVersion((version) => version + 1);
+    setSubmittedClient({ clientId: result.clientId, phone, request });
     setSent(true);
+    setShowConversationPopup(true);
   }
 
   return (
@@ -108,7 +108,7 @@ export function PublicRequestForm({ shopSlug }: { shopSlug: string }) {
           onFilesChange={setPhotoFiles}
         />
         <Button fullWidth size="lg" type="submit">
-          Envoyer ma demande
+          Commencer une conversation
         </Button>
         <Typography component="p" variant="caption2" className="text-center">
           Votre demande sera envoyée directement à la boutique.{" "}
@@ -124,11 +124,11 @@ export function PublicRequestForm({ shopSlug }: { shopSlug: string }) {
         </Typography>
       ) : null}
 
-      {sent ? (
+      {sent && submittedClient && !showConversationPopup ? (
         <div className="absolute inset-0 z-10 flex items-center justify-center p-4">
           <Card
             aria-live="polite"
-            className="grid w-full max-w-sm gap-2 p-5 text-center shadow-lg"
+            className="grid w-full max-w-sm gap-3 p-5 text-center shadow-lg"
             role="status"
             warm
           >
@@ -139,8 +139,20 @@ export function PublicRequestForm({ shopSlug }: { shopSlug: string }) {
               Merci. La boutique a bien reçu votre demande et vous répondra
               bientôt.
             </Typography>
+            <Button fullWidth onClick={() => setShowConversationPopup(true)}>
+              Commencer une conversation
+            </Button>
           </Card>
         </div>
+      ) : null}
+
+      {showConversationPopup && submittedClient ? (
+        <StartConversationPopup
+          clientId={submittedClient.clientId}
+          phone={submittedClient.phone}
+          requestText={submittedClient.request}
+          onClose={() => setShowConversationPopup(false)}
+        />
       ) : null}
     </div>
   );

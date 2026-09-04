@@ -122,5 +122,8 @@ export async function POST(request: Request) {
     });
   }
 
-  return NextResponse.json({ ok: true }, { status: 201 });
+  return NextResponse.json(
+    { ok: true, clientId: submitResult.client_id },
+    { status: 201 },
+  );
 }

@@ -30,6 +30,7 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/clients") ||
     pathname.startsWith("/ventes") ||
+    pathname.startsWith("/messagerie") ||
     pathname.startsWith("/reglages");
 
   if (user && isAuthPage) {
@@ -57,6 +58,7 @@ export const config = {
     "/dashboard/:path*",
     "/clients/:path*",
     "/ventes/:path*",
+    "/messagerie/:path*",
     "/reglages/:path*",
     "/login",
     "/register",
