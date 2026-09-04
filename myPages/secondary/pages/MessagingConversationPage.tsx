@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { Container, Typography } from "@/app/components";
 import { MessageList } from "@/myPages/secondary/sections/MessagingConversationPageSections/MessageList";
 import { MessageForm } from "@/myPages/secondary/sections/MessagingConversationPageSections/MessageForm";
+import { ConversationRealtimeRefresh } from "@/myPages/secondary/sections/MessagingConversationPageSections/ConversationRealtimeRefresh";
 import { requireShopWorkspace } from "@/lib/data";
 import { getShopConversationDetail } from "@/lib/shopMessaging";
 
@@ -33,6 +34,7 @@ export async function MessagingConversationPage({
       </Link>
       <MessageList messages={conversation.messages} />
       <MessageForm conversationId={conversation.id} />
+      <ConversationRealtimeRefresh conversationId={conversation.id} />
     </Container>
   );
 }

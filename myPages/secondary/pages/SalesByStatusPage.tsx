@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { Card, Container, StatusBadge, Typography } from "@/app/components";
 import type { ClientStatus } from "@/lib/types";
 import { requireShopWorkspace } from "@/lib/data";
+import { SalesByStatusRealtimeRefresh } from "@/myPages/secondary/sections/SalesByStatusPageSections/SalesByStatusRealtimeRefresh";
 
 const statusLabels: Record<ClientStatus, string> = {
   new: "Nouvelles demandes",
@@ -24,11 +25,12 @@ export async function SalesByStatusPage({ status }: { status: string }) {
     );
   }
 
-  const { sales } = await requireShopWorkspace();
+  const { shop, sales } = await requireShopWorkspace();
   const filteredSales = sales.filter((sale) => sale.status === status);
 
   return (
     <Container className="gap-8">
+      <SalesByStatusRealtimeRefresh shopId={shop.id} />
       <header className="flex items-center gap-2">
         <Link
           aria-label="Retour au tableau de bord"

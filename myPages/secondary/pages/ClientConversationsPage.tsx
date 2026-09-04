@@ -1,6 +1,7 @@
 import { BrandHeader, Container, Typography } from "@/app/components";
 import { ConversationList } from "@/myPages/secondary/sections/ClientConversationsPageSections/ConversationList";
 import { ClientLogoutButton } from "@/myPages/secondary/sections/ClientConversationsPageSections/ClientLogoutButton";
+import { ConversationListRealtimeRefresh } from "@/myPages/secondary/sections/ClientConversationsPageSections/ConversationListRealtimeRefresh";
 import { requireClientWorkspace, getClientConversations } from "@/lib/clientData";
 
 export async function ClientConversationsPage() {
@@ -15,6 +16,7 @@ export async function ClientConversationsPage() {
       </Typography>
       <ConversationList conversations={conversations} />
       <ClientLogoutButton />
+      <ConversationListRealtimeRefresh />
     </Container>
   );
 }
