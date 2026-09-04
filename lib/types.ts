@@ -15,6 +15,8 @@ export type Client = {
   initials: string;
   name: string;
   phone: string;
+  /** Compte Fillo (téléphone + mot de passe) lié à cette fiche, une fois que le client l'a créé. */
+  userId: string | null;
 };
 
 /**

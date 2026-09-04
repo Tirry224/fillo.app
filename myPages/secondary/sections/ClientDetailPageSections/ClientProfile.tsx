@@ -4,7 +4,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Avatar, Button, Card, PhoneField, TextField, Typography } from "@/app/components";
-import { deleteClientAction, updateClientAction } from "@/lib/actions/clients";
+import {
+  deleteClientAction,
+  resetClientPasswordAction,
+  updateClientAction,
+} from "@/lib/actions/clients";
 import type { Client, Sale } from "@/lib/types";
 import { getClientStatus } from "@/lib/utils/clientStatus";
 import { normalizePhone } from "@/lib/utils/phone";
@@ -20,13 +24,33 @@ export function ClientProfile({
   const whatsappNumber = `224${normalizePhone(client.phone)}`;
   const status = getClientStatus(client.id, sales);
 
-  const [mode, setMode] = useState<"idle" | "edit" | "delete">("idle");
+  const [mode, setMode] = useState<"idle" | "edit" | "delete" | "reset-password">(
+    "idle",
+  );
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [temporaryPassword, setTemporaryPassword] = useState<string | null>(
+    null,
+  );
 
   function closeDialog() {
     setMode("idle");
     setError(null);
+    setTemporaryPassword(null);
+  }
+
+  async function handleResetPassword() {
+    setPending(true);
+    setError(null);
+    const result = await resetClientPasswordAction(client.id);
+    setPending(false);
+
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+
+    setTemporaryPassword(result.temporaryPassword ?? null);
   }
 
   async function handleEditSubmit(event: FormEvent<HTMLFormElement>) {
@@ -106,6 +130,15 @@ export function ClientProfile({
             Supprimer
           </Button>
         </div>
+        {client.userId ? (
+          <Button
+            fullWidth
+            variant="secondary"
+            onClick={() => setMode("reset-password")}
+          >
+            Réinitialiser l&apos;accès Fillo
+          </Button>
+        ) : null}
       </section>
 
       {mode === "edit" ? (
@@ -186,6 +219,67 @@ export function ClientProfile({
                 {pending ? "Suppression..." : "Supprimer"}
               </Button>
             </div>
+          </Card>
+        </div>
+      ) : null}
+
+      {mode === "reset-password" ? (
+        <div className="absolute inset-0 z-10 flex items-center justify-center p-4">
+          <Card className="grid w-full max-w-sm gap-3 p-5 text-center shadow-lg" warm>
+            {temporaryPassword ? (
+              <>
+                <Typography component="p" variant="h4">
+                  Mot de passe temporaire
+                </Typography>
+                <Typography component="p" variant="body-base">
+                  Communiquez-le vous-même à {client.name}, par exemple sur
+                  WhatsApp. Il devra le changer dès sa prochaine connexion.
+                </Typography>
+                <Typography
+                  component="p"
+                  variant="h3"
+                  className="rounded-lg bg-white/60 py-2 font-mono tracking-widest"
+                >
+                  {temporaryPassword}
+                </Typography>
+                <Button onClick={closeDialog} type="button">
+                  Fermer
+                </Button>
+              </>
+            ) : (
+              <>
+                <Typography component="p" variant="h4">
+                  Réinitialiser l&apos;accès Fillo de {client.name} ?
+                </Typography>
+                <Typography component="p" variant="caption2">
+                  Un mot de passe temporaire sera généré. Vous devrez vous-même
+                  le transmettre au client ; il ne sera pas envoyé
+                  automatiquement.
+                </Typography>
+                {error ? (
+                  <Typography component="p" variant="caption2" className="text-[#b33434]">
+                    {error}
+                  </Typography>
+                ) : null}
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    disabled={pending}
+                    onClick={closeDialog}
+                    type="button"
+                    variant="secondary"
+                  >
+                    Annuler
+                  </Button>
+                  <Button
+                    disabled={pending}
+                    onClick={handleResetPassword}
+                    type="button"
+                  >
+                    {pending ? "Génération..." : "Réinitialiser"}
+                  </Button>
+                </div>
+              </>
+            )}
           </Card>
         </div>
       ) : null}

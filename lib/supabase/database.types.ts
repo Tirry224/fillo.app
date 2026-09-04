@@ -36,6 +36,24 @@ export type Database = {
           initial: string;
         };
       };
+      shop_reset_client_password: {
+        Args: {
+          target_client_id: string;
+        };
+        Returns: { temporary_password: string };
+      };
+      link_client_identity: {
+        Args: {
+          p_phone: string;
+        };
+        Returns: undefined;
+      };
+      resolve_client_login_email: {
+        Args: {
+          p_phone: string;
+        };
+        Returns: string | null;
+      };
     };
     Tables: {
       shops: {
@@ -124,12 +142,13 @@ export type Database = {
           name: string;
           phone: string;
           normalized_phone: string;
+          user_id: string | null;
           created_at: string;
         };
         Insert: Omit<
           Database["public"]["Tables"]["clients"]["Row"],
-          "id" | "created_at"
-        > & { id?: string; created_at?: string };
+          "id" | "created_at" | "user_id"
+        > & { id?: string; created_at?: string; user_id?: string | null };
         Update: Partial<Database["public"]["Tables"]["clients"]["Insert"]>;
         Relationships: [
           {
@@ -213,6 +232,68 @@ export type Database = {
             columns: ["request_id"];
             isOneToOne: false;
             referencedRelation: "client_requests";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      conversations: {
+        Row: {
+          id: string;
+          shop_id: string;
+          client_id: string;
+          last_message_at: string | null;
+          shop_last_read_at: string | null;
+          client_last_read_at: string | null;
+          created_at: string;
+        };
+        Insert: Omit<
+          Database["public"]["Tables"]["conversations"]["Row"],
+          "id" | "created_at" | "last_message_at" | "shop_last_read_at" | "client_last_read_at"
+        > & {
+          id?: string;
+          created_at?: string;
+          last_message_at?: string | null;
+          shop_last_read_at?: string | null;
+          client_last_read_at?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["conversations"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "conversations_shop_id_fkey";
+            columns: ["shop_id"];
+            isOneToOne: false;
+            referencedRelation: "shops";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "conversations_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      messages: {
+        Row: {
+          id: string;
+          conversation_id: string;
+          sender_role: "shop" | "client";
+          sender_user_id: string;
+          body: string;
+          created_at: string;
+        };
+        Insert: Omit<
+          Database["public"]["Tables"]["messages"]["Row"],
+          "id" | "created_at"
+        > & { id?: string; created_at?: string };
+        Update: Partial<Database["public"]["Tables"]["messages"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey";
+            columns: ["conversation_id"];
+            isOneToOne: false;
+            referencedRelation: "conversations";
             referencedColumns: ["id"];
           },
         ];

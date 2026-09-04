@@ -166,6 +166,40 @@ export async function updateClientAction(
   return { error: null };
 }
 
+export type ResetClientPasswordResult = {
+  error: string | null;
+  temporaryPassword?: string;
+};
+
+/**
+ * Génère un mot de passe temporaire pour le compte Fillo d'un client (RPC
+ * `shop_reset_client_password`, qui vérifie elle-même que ce client
+ * appartient bien à la boutique de l'appelant et qu'il a déjà un compte).
+ * Le commerçant doit ensuite communiquer ce mot de passe au client
+ * lui-même (WhatsApp, téléphone...) : Fillo ne l'envoie pas automatiquement.
+ */
+export async function resetClientPasswordAction(
+  clientId: string,
+): Promise<ResetClientPasswordResult> {
+  const shopContext = await requireShopContext();
+
+  if (shopContext.error !== null) {
+    return { error: shopContext.error };
+  }
+
+  const { supabase } = shopContext.context;
+
+  const { data, error } = await supabase.rpc("shop_reset_client_password", {
+    target_client_id: clientId,
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { error: null, temporaryPassword: data.temporary_password };
+}
+
 export type DeleteClientResult = { error: string | null };
 
 /**
