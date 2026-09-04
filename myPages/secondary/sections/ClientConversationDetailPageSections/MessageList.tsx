@@ -21,7 +21,11 @@ export function MessageList({ messages }: { messages: Message[] }) {
             }`}
             key={message.id}
           >
-            <Typography component="p" variant="body-base" className="whitespace-pre-wrap break-words">
+            <Typography
+              component="p"
+              variant="body-base"
+              className={`whitespace-pre-wrap break-words ${isClient ? "text-white" : "text-text"}`}
+            >
               {message.body}
             </Typography>
             <Typography

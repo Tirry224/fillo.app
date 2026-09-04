@@ -1,4 +1,4 @@
-import { BrandHeader, Container, Typography } from "@/app/components";
+import { BrandHeader, Container, PushNotificationToggle, Typography } from "@/app/components";
 import { ConversationList } from "@/myPages/secondary/sections/ClientConversationsPageSections/ConversationList";
 import { ClientLogoutButton } from "@/myPages/secondary/sections/ClientConversationsPageSections/ClientLogoutButton";
 import { ConversationListRealtimeRefresh } from "@/myPages/secondary/sections/ClientConversationsPageSections/ConversationListRealtimeRefresh";
@@ -11,9 +11,12 @@ export async function ClientConversationsPage() {
   return (
     <Container className="gap-6">
       <BrandHeader />
-      <Typography component="h1" variant="h3">
-        Mes conversations
-      </Typography>
+      <div className="flex items-center justify-between">
+        <Typography component="h1" variant="h3">
+          Mes conversations
+        </Typography>
+        <PushNotificationToggle />
+      </div>
       <ConversationList conversations={conversations} />
       <ClientLogoutButton />
       <ConversationListRealtimeRefresh />

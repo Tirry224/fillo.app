@@ -110,13 +110,21 @@ export function PublicRequestForm({ shopSlug }: { shopSlug: string }) {
         <Button fullWidth size="lg" type="submit">
           Commencer une conversation
         </Button>
-        <Typography component="p" variant="caption2" className="text-center">
-          Votre demande sera envoyée directement à la boutique.{" "}
-          <Link className="underline" href="/confidentialite">
-            Confidentialité
-          </Link>
-        </Typography>
       </form>
+
+      <Link
+        className="mt-4 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-[var(--radius-control)] border border-border-strong bg-surface text-sm font-bold text-navy transition-colors hover:bg-surface-warm"
+        href="/mes-conversations/connexion"
+      >
+        Vous avez déjà un compte ? Se connecter
+      </Link>
+
+      <Typography component="p" variant="caption2" className="mt-3 text-center">
+        Votre demande sera envoyée directement à la boutique.{" "}
+        <Link className="underline" href="/confidentialite">
+          Confidentialité
+        </Link>
+      </Typography>
 
       {error ? (
         <Typography component="p" variant="caption2" className="text-red-600">

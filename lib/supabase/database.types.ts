@@ -54,6 +54,26 @@ export type Database = {
         };
         Returns: string | null;
       };
+      get_recipient_push_subscriptions: {
+        Args: {
+          target_conversation_id: string;
+        };
+        Returns: Database["public"]["Tables"]["push_subscriptions"]["Row"][];
+      };
+      delete_push_subscription: {
+        Args: {
+          target_endpoint: string;
+        };
+        Returns: undefined;
+      };
+      submit_client_conversation_order: {
+        Args: {
+          target_conversation_id: string;
+          request_text: string;
+          request_photos?: string[];
+        };
+        Returns: { request_id: string };
+      };
     };
     Tables: {
       shops: {
@@ -294,6 +314,30 @@ export type Database = {
             columns: ["conversation_id"];
             isOneToOne: false;
             referencedRelation: "conversations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      push_subscriptions: {
+        Row: {
+          id: string;
+          user_id: string;
+          endpoint: string;
+          p256dh: string;
+          auth_key: string;
+          created_at: string;
+        };
+        Insert: Omit<
+          Database["public"]["Tables"]["push_subscriptions"]["Row"],
+          "id" | "created_at"
+        > & { id?: string; created_at?: string };
+        Update: Partial<Database["public"]["Tables"]["push_subscriptions"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
             referencedColumns: ["id"];
           },
         ];

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireShopContext } from "@/lib/actions/shopContext";
+import { sendConversationPushNotification } from "@/lib/push";
 
 export type SendShopMessageState = {
   error: string | null;
@@ -44,6 +45,13 @@ export async function sendShopMessageAction(
   }
 
   revalidatePath(`/messagerie/${conversationId}`);
+
+  await sendConversationPushNotification(conversationId, {
+    title: "Nouveau message",
+    body: body.slice(0, 120),
+    url: `/mes-conversations/${conversationId}`,
+  });
+
   return { error: null, sentAt: Date.now() };
 }
 

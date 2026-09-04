@@ -22,7 +22,7 @@ export function BottomNavigation({
       aria-label={ariaLabel}
       className="fixed inset-x-0 bottom-0 z-10 border-t border-border bg-surface px-3 pb-[env(safe-area-inset-bottom)] shadow-[0_-1px_3px_rgb(39_52_82_/_5%)]"
     >
-      <ul className="mx-auto grid max-w-md grid-cols-4">
+      <ul className="mx-auto grid max-w-md grid-cols-5">
         {items.map((item) => (
           <li key={item.href}>
             <Link

@@ -1,4 +1,4 @@
-import { Container, Typography } from "@/app/components";
+import { Container, PushNotificationToggle, Typography } from "@/app/components";
 import { ConversationList } from "@/myPages/main/sections/MessagingPageSections/ConversationList";
 import { NewConversationSearch } from "@/myPages/main/sections/MessagingPageSections/NewConversationSearch";
 import { ConversationListRealtimeRefresh } from "@/myPages/main/sections/MessagingPageSections/ConversationListRealtimeRefresh";
@@ -11,9 +11,12 @@ export async function MessagingPage() {
 
   return (
     <Container className="gap-6">
-      <Typography component="h1" variant="h3">
-        Messagerie
-      </Typography>
+      <div className="flex items-center justify-between">
+        <Typography component="h1" variant="h3">
+          Messagerie
+        </Typography>
+        <PushNotificationToggle />
+      </div>
       <NewConversationSearch
         clients={clients}
         existingConversationClientIds={conversations.map((c) => c.clientId)}

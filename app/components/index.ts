@@ -11,6 +11,7 @@ export { BrandHeader } from "./ui/BrandHeader";
 export { Card } from "./ui/Card";
 export { Container } from "./ui/Container";
 export { PhotoGallery } from "./ui/PhotoGallery";
+export { PushNotificationToggle } from "./ui/PushNotificationToggle";
 export { Skeleton } from "./ui/Skeleton";
 export { StatusBadge } from "./ui/StatusBadge";
 export { TextAreaField } from "./ui/TextAreaField";

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { sendConversationPushNotification } from "@/lib/push";
 
 export type SendMessageState = {
   error: string | null;
@@ -47,5 +48,12 @@ export async function sendClientMessageAction(
   }
 
   revalidatePath(`/mes-conversations/${conversationId}`);
+
+  await sendConversationPushNotification(conversationId, {
+    title: "Nouveau message",
+    body: body.slice(0, 120),
+    url: `/messagerie/${conversationId}`,
+  });
+
   return { error: null, sentAt: Date.now() };
 }
